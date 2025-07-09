@@ -43,10 +43,7 @@ public class UserController {
             return "signup";
         }
 
-        User user = new User();
-        user.setUsername(dto.getUsername());
-        user.setNickname(dto.getNickname());
-        user.setPassword(dto.getPassword());
+        User user = new User(dto.getUsername(), dto.getNickname(), dto.getPassword());
         userService.saveUser(user);
 
         model.addAttribute("success", true);
