@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>회원가입</title>
+
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    let success = /*[[${success}]]*/ false;
+    if (success) {
+      alert("회원가입에 성공했습니다. 로그인 화면으로 이동합니다.");
+      window.location.href = "/login";
+    }
+    /*]]>*/
+  </script>
+
+  <script>
+    async function checkUsername() {
+      const username = document.getElementById("username").value;
+      if (!username) {
+        setUsernameMsg("");
+        return;
+      }
+      const res = await fetch(`/check/username?username=${username}`);
+      const isDuplicate = await res.json();
+      setUsernameMsg(isDuplicate ? "이미 존재하는 아이디입니다." : "사용 가능한 아이디입니다.", isDuplicate);
+    }
+
+    async function checkNickname() {
+      const nickname = document.getElementById("nickname").value;
+      if (!nickname) {
+        setNicknameMsg("");
+        return;
+      }
+      const res = await fetch(`/check/nickname?nickname=${nickname}`);
+      const isDuplicate = await res.json();
+      setNicknameMsg(isDuplicate ? "이미 존재하는 닉네임입니다." : "사용 가능한 닉네임입니다.", isDuplicate);
+    }
+
+    function setUsernameMsg(msg, isError) {
+      const el = document.getElementById("username-msg");
+      el.innerText = msg;
+      el.style.color = isError ? "red" : "green";
+    }
+
+    function setNicknameMsg(msg, isError) {
+      const el = document.getElementById("nickname-msg");
+      el.innerText = msg;
+      el.style.color = isError ? "red" : "green";
+    }
+
+    // 비밀번호 일치
+    function checkPasswordMatch() {
+      const pw = document.getElementById("password").value;
+      const pwConfirm = document.getElementById("passwordConfirm").value;
+      const msgEl = document.getElementById("password-match-msg");
+
+      if (!pwConfirm) {
+        msgEl.innerText = "";
+        return;
+      }
+
+      if (pw !== pwConfirm) {
+        msgEl.innerText = "비밀번호가 일치하지 않습니다.";
+        msgEl.style.color = "red";
+      } else {
+        msgEl.innerText = "";
+      }
+    }
+  </script>
+
+  <style>
+    label {
+      display: block;
+      margin-bottom: 10px;
+    }
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .msg {
+      margin-left: 8px;
+      min-width: 160px;
+    }
+  </style>
+</head>
+<body>
+<h2>회원가입</h2>
+
+<div th:if="${error}" style="color:red;" th:text="${error}"></div>
+
+<form method="post" th:object="${user}">
+
+  <label>
+    아이디:
+    <div class="input-row">
+      <input type="text" th:field="*{username}" id="username" placeholder="영문+숫자 6~20자" />
+      <button type="button" onclick="checkUsername()">중복확인</button>
+      <span id="username-msg" class="msg"></span>
+    </div>
+  </label>
+  <div style="color:gray; margin-bottom:10px;">영문/숫자 6~20자, 특수문자 X</div>
+
+  <label>
+    비밀번호:
+    <input type="password" th:field="*{password}" id="password" placeholder="영문+숫자 필수 8~20자" oninput="checkPasswordMatch()" />
+  </label>
+  <div style="color:gray; margin-bottom:10px;">영문+숫자 필수 8~20자, 특수문자 허용 (_, !, @)</div>
+
+  <label>
+    비밀번호 확인:
+    <input type="password" th:field="*{passwordConfirm}" id="passwordConfirm" placeholder="비밀번호 확인" oninput="checkPasswordMatch()" />
+    <span id="password-match-msg" style="margin-left:10px;"></span>
+  </label>
+
+  <label style="margin-top: 15px;">
+    닉네임:
+    <div class="input-row">
+      <input type="text" th:field="*{nickname}" id="nickname" placeholder="한글/영어/숫자 4~12자 (선택)" />
+      <button type="button" onclick="checkNickname()">중복확인</button>
+      <span id="nickname-msg" class="msg"></span>
+    </div>
+  </label>
+  <div style="color:gray;">한글/영어/숫자 4~12자, 특수문자 X (선택)</div>
+
+  <button type="submit" style="margin-top:20px;">회원가입</button>
+</form>
+</body>
+</html>
