@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <title>거래글 상세</title>
+  </head>
+  <body>
+    <div class="container">
+      <a href="/trades" class="back-link">&lt; 뒤로가기</a>
+      <div class="trade-detail">
+        <div class="trade-image">
+          <img th:src="${trade.tradeImgUrl}" alt="상품 이미지" style="width: 300px; height: 300px; object-fit: cover" />
+        </div>
+        <div class="trade-info">
+          <div class="user-info">
+            <span class="username">판매자</span>
+            <span class="category" th:text="${trade.category}">카테고리</span>
+          </div>
+          <h2 th:text="${trade.title}">제목</h2>
+          <p th:text="${trade.description}">설명</p>
+          <div class="trade-meta">
+            <span class="price" th:text="${trade.price + ' 원'}">가격</span>
+            <span class="views" th:text="'조회 ' + ${trade.viewCount}">조회수</span>
+            <span class="status" th:text="${trade.status}">상태</span>
+          </div>
+          <div class="trade-actions">
+            <button class="btn btn-orange">채팅하기</button>
+            <a th:href="@{/trades/{id}/edit(id=${trade.id})}" class="btn btn-link">수정하기</a>
+            <a th:href="@{/trades/{id}/delete(id=${trade.id})}" class="btn btn-link">삭제하기</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
