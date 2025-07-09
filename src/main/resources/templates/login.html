@@ -10,7 +10,10 @@
         }
     </style>
 </head>
-<body>
+<body style="margin: 0;">
+<div th:replace="~{header :: header}"></div>
+
+<div style="margin-top: 60px; padding: 20px;">
 <h2>로그인</h2>
 
 <div th:if="${error}" class="msg" th:text="${error}"></div>
@@ -31,5 +34,6 @@
     <button type="submit">로그인</button>
     <button type="button" onclick="location.href='/signup'">회원가입</button>
 </form>
+</div>
 </body>
 </html>

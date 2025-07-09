@@ -98,4 +98,19 @@ public class UserController {
     public String tradePage() {
         return "trade";
     }
+
+    @GetMapping("/main")
+    public String mainPage() {
+        return "main";
+    }
+
+    // 로그아웃
+    @GetMapping("/logout")
+    public String logout(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        return "redirect:/main";
+    }
 }

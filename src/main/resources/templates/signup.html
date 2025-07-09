@@ -86,7 +86,10 @@
     }
   </style>
 </head>
-<body>
+<body style="margin: 0;">
+<div th:replace="~{header :: header}"></div>
+
+<div style="margin-top: 60px; padding: 20px;">
 <h2>회원가입</h2>
 
 <div th:if="${error}" style="color:red;" th:text="${error}"></div>
@@ -127,5 +130,6 @@
 
   <button type="submit" style="margin-top:20px;">회원가입</button>
 </form>
+</div>
 </body>
 </html>
