@@ -1,0 +1,36 @@
+package com.example.chatbot_used_market.controller;
+
+import com.example.chatbot_used_market.dto.ChatroomDto;
+import com.example.chatbot_used_market.dto.MessageDto;
+import com.example.chatbot_used_market.entity.Chatroom;
+import com.example.chatbot_used_market.service.ChatService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/chats")
+public class ChatController {
+    private final ChatService chatService;
+
+    // 채팅방 생성 또는 조회
+    @PostMapping
+    public ResponseEntity<ChatroomDto.Response> createOrGetChatroom(@RequestBody ChatroomDto.Request request) {
+        // TODO: Spring Security를 통해 실제 로그인한 사용자 ID를 가져와야 합니다.
+        Long currentUserId = 2L;
+        Chatroom chatroom = chatService.createOrGetChatroom(request.getTradeId(), currentUserId);
+        ChatroomDto.Response response = new ChatroomDto.Response(chatroom.getId());
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/messages")
+    public ResponseEntity<List<MessageDto>> getMessages(@PathVariable("id") Long chatroomId) {
+        List<MessageDto> messages = chatService.getMessages(chatroomId);
+
+        return ResponseEntity.ok(messages);
+    }
+}
