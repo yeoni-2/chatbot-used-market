@@ -26,7 +26,7 @@
           <div class="trade-actions">
             <button class="btn btn-orange">채팅하기</button>
             <a th:href="@{/trades/{id}/edit(id=${trade.id})}" class="btn btn-link">수정하기</a>
-            <a th:href="@{/trades/{id}/delete(id=${trade.id})}" class="btn btn-link">삭제하기</a>
+            <a th:href="@{/trades/{id}/delete(id=${trade.id})}" class="btn btn-link" onclick="return confirm('정말로 이 글을 삭제하시겠습니까?')">삭제하기</a>
           </div>
         </div>
       </div>

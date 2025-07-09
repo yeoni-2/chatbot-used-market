@@ -9,6 +9,8 @@ import com.example.chatbot_used_market.repository.UserRepository;
 import com.example.chatbot_used_market.service.TradeService;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class TradeServiceImpl implements TradeService {
     
@@ -18,6 +20,14 @@ public class TradeServiceImpl implements TradeService {
     public TradeServiceImpl(TradeRepository tradeRepository, UserRepository userRepository) {
         this.tradeRepository = tradeRepository;
         this.userRepository = userRepository;
+    }
+    
+    @Override
+    public List<TradeResponseDto> getAllTrades() {
+        List<Trade> trades = tradeRepository.findByStatusOrderByViewCountDesc("판매중");
+        return trades.stream()
+                .map(this::convertToResponseDto)
+                .toList();
     }
     
     @Override
@@ -39,6 +49,39 @@ public class TradeServiceImpl implements TradeService {
         Trade trade = tradeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Trade not found with id: " + id));
         return convertToResponseDto(trade);
+    }
+    
+    @Override
+    public TradeResponseDto updateTrade(Long id, TradeRequestDto requestDto, User seller) {
+        Trade trade = tradeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Trade not found with id: " + id));
+        
+        // 기존 데이터 업데이트
+        trade.setTitle(requestDto.getTitle());
+        trade.setPrice(requestDto.getPrice());
+        trade.setCategory(requestDto.getCategory());
+        trade.setDescription(requestDto.getDescription());
+        trade.setTradeImgUrl(requestDto.getTradeImgUrl());
+        
+        Trade updatedTrade = tradeRepository.save(trade);
+        return convertToResponseDto(updatedTrade);
+    }
+    
+    @Override
+    public void deleteTrade(Long id) {
+        Trade trade = tradeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Trade not found with id: " + id));
+        
+        tradeRepository.delete(trade);
+    }
+    
+    @Override
+    public void incrementViewCount(Long id) {
+        Trade trade = tradeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Trade not found with id: " + id));
+        
+        trade.setViewCount(trade.getViewCount() + 1);
+        tradeRepository.save(trade);
     }
     
     private TradeResponseDto convertToResponseDto(Trade trade) {
