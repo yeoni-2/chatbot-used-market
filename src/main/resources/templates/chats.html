@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>채팅</title>
+    <style>
+        body { display: flex; font-family: sans-serif; }
+        #left-frame { width: 30%; height: 95vh; border-right: 1px solid #ccc; padding: 10px; }
+        #right-frame { width: 70%; height: 95vh; padding: 10px; display: flex; flex-direction: column;}
+
+        #chatroom-list { flex-grow: 1; overflow-y: auto; }
+        .chatroom-item { cursor: pointer; padding: 10px; border-bottom: 1px solid #eee; }
+        .chatroom-item:hover { background-color: #f0f0f0; }
+
+        #message-container { flex-grow: 1; border: 1px solid #ddd; padding: 10px; overflow-y: scroll; margin-bottom: 10px;}
+        #message-form { display: flex; }
+        #message-input { flex-grow: 1; padding: 5px; }
+    </style>
+</head>
+<body>
+<div id="left-frame">
+    <h1>내 채팅 목록</h1>
+    <div id="chatroom-list">
+    </div>
+</div>
+<div id="right-frame">
+    <div id="message-container">
+        <p>채팅방을 선택해주세요.</p>
+    </div>
+    <form id="message-form" style="display: none;">
+        <input type="text" id="message-input" placeholder="메시지를 입력하세요...">
+        <button type="submit">전송</button>
+    </form>
+</div>
+
+<script th:inline="javascript">
+    let ws;
+    let currentChatroomId = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadChatrooms();
+
+        const messageForm = document.getElementById('message-form');
+
+        messageForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            sendMessage();
+        });
+    });
+
+    function loadChatrooms() {
+        fetch('/chats')
+            .then(response => response.json())
+            .then(data => {
+                const chatroomListDiv = document.getElementById('chatroom-list');
+
+                chatroomListDiv.innerHTML = '';
+                data.forEach(chatroom => {
+                    const chatroomElement = document.createElement('div');
+
+                    chatroomElement.className = 'chatroom-item';
+                    chatroomElement.textContent = chatroom.opponentNickname + '님과의 대화';
+                    chatroomElement.dataset.chatroomId = chatroom.chatroomId;
+                    chatroomElement.addEventListener('click', () => {
+                        document.getElementById('message-container').innerHTML = '';
+                        loadMessages(chatroom.chatroomId);
+                    });
+                    chatroomListDiv.appendChild(chatroomElement);
+                });
+            });
+    }
+
+    function loadMessages(chatroomId) {
+        currentChatroomId = chatroomId;
+
+        const messageContainer = document.getElementById('message-container');
+        const messageForm = document.getElementById('message-form');
+
+        fetch(`/chats/${chatroomId}/messages`)
+            .then(response => response.json())
+            .then(data => {
+                messageContainer.innerHTML = '';
+                data.forEach(message => {
+                    appendMessage(message);
+                });
+                messageContainer.scrollTop = messageContainer.scrollHeight;
+            });
+
+        if (ws)
+            ws.close();
+
+        ws = new WebSocket("ws://localhost:8080/ws/chat");
+
+        ws.onopen = function(event) {
+            console.log("WebSocket 연결 성공");
+
+            const joinMessage = {
+                type: 'JOIN',
+                chatroomId: currentChatroomId
+            };
+
+            ws.send(JSON.stringify(joinMessage));
+        };
+
+        ws.onmessage = function(event) {
+            const message = JSON.parse(event.data);
+
+            appendMessage(message);
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+        };
+
+        ws.onerror = function(event) {
+            console.error("WebSocket 오류 발생:", event);
+        };
+
+        messageForm.style.display = 'flex';
+    }
+
+    function sendMessage() {
+        const messageInput = document.getElementById('message-input');
+        const messageContent = messageInput.value;
+
+        if (messageContent.trim() !== "" && ws && ws.readyState === WebSocket.OPEN) {
+            const talkMessage = {
+                type: 'TALK',
+                chatroomId: currentChatroomId,
+                senderId: 1, // TODO: 실제 로그인한 사용자 ID로 변경 필요
+                content: messageContent
+            };
+
+            ws.send(JSON.stringify(talkMessage));
+            messageInput.value = '';
+        }
+    }
+
+    function appendMessage(message) {
+        const messageContainer = document.getElementById('message-container');
+        const messageElement = document.createElement('div');
+
+        messageElement.textContent = `${message.senderNickname}: ${message.content}`;
+        messageContainer.appendChild(messageElement);
+    }
+</script>
+</body>
+</html>

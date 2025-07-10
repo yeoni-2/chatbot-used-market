@@ -1,5 +1,6 @@
 package com.example.chatbot_used_market.service.impl;
 
+import com.example.chatbot_used_market.dto.ChatroomListDto;
 import com.example.chatbot_used_market.dto.MessageDto;
 import com.example.chatbot_used_market.entity.Chatroom;
 import com.example.chatbot_used_market.entity.Message;
@@ -58,5 +59,11 @@ public class ChatServiceImpl implements ChatService {
         Message message = new Message(content, sender, chatroom);
 
         return messageRepository.save(message);
+    }
+
+    @Override
+    public List<ChatroomListDto> findMyChatrooms(Long userId) {
+        return chatroomRepository.findByBuyerIdOrSellerId(userId, userId)
+                .stream().map(chatroom -> new ChatroomListDto(chatroom, userId)).collect(Collectors.toList());
     }
 }
