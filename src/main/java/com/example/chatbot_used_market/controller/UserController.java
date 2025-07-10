@@ -43,6 +43,22 @@ public class UserController {
             return "signup";
         }
 
+        // 유효성 검사
+        if (!userService.isValidUsername(dto.getUsername())) {
+            model.addAttribute("error", "아이디는 영문/숫자를 사용한 6~20자만 가능합니다.");
+            return "signup";
+        }
+
+        if (!dto.getNickname().isBlank() && !userService.isValidNickname(dto.getNickname())) {
+            model.addAttribute("error", "닉네임은 한글/영문/숫자를 사용한 4~12자만 가능합니다.");
+            return "signup";
+        }
+
+        if (!userService.isValidPassword(dto.getPassword())) {
+            model.addAttribute("error", "비밀번호는 영문+숫자 필수, 특수문자는 !@#$%^&*()만 가능하며 8~20자여야 합니다.");
+            return "signup";
+        }
+
         User user = new User(dto.getUsername(), dto.getNickname(), dto.getPassword());
         userService.saveUser(user);
 
@@ -95,7 +111,15 @@ public class UserController {
     }
 
     @GetMapping("/trade")
-    public String tradePage() {
+    public String tradePage(HttpServletRequest request, Model model) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            Long userId = (Long) session.getAttribute("loginUserId");
+            if (userId != null) {
+                User user = userService.findById(userId);
+                model.addAttribute("hasNickname", user.getNickname() != null && !user.getNickname().isBlank());
+            }
+        }
         return "trade";
     }
 
