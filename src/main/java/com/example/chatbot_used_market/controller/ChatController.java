@@ -1,16 +1,19 @@
 package com.example.chatbot_used_market.controller;
 
 import com.example.chatbot_used_market.dto.ChatroomDto;
+import com.example.chatbot_used_market.dto.ChatroomListDto;
 import com.example.chatbot_used_market.dto.MessageDto;
 import com.example.chatbot_used_market.entity.Chatroom;
 import com.example.chatbot_used_market.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
+@Controller
 @RequiredArgsConstructor
 @RequestMapping("/chats")
 public class ChatController {
@@ -32,5 +35,19 @@ public class ChatController {
         List<MessageDto> messages = chatService.getMessages(chatroomId);
 
         return ResponseEntity.ok(messages);
+    }
+
+    // 메인 채팅 페이지
+    @GetMapping("/page")    // URL: GET /chats/page
+    public String chatPage(Model model) { return "chats"; }
+
+    // 내 채팅방 목록 조회 API
+    @GetMapping
+    @ResponseBody
+    public ResponseEntity<List<ChatroomListDto>> getMyChatrooms() {
+        Long currentUserId = 1L;
+        List<ChatroomListDto> chatrooms = chatService.findMyChatrooms(currentUserId);
+
+        return ResponseEntity.ok(chatrooms);
     }
 }
