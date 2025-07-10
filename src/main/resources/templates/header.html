@@ -25,10 +25,10 @@
 <body>
 
 <header th:fragment="header">
-  <div class="fixed-header">
-    <a href="/trade">중고거래</a>
+    <div class="fixed-header">
+        <a href="/trade">중고거래</a>
 
-    <span style="float:right;">
+        <span style="float:right;">
         <th:block th:if="${session.loginUserId == null}">
           <a href="/login">로그인</a>
         </th:block>
@@ -36,7 +36,7 @@
           <a href="/logout">로그아웃</a>
         </th:block>
       </span>
-  </div>
+    </div>
 </header>
 </body>
 </html>
