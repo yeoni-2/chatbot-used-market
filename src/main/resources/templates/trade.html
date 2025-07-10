@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>거래 페이지</title>
+
+  <script>
+    // 닉네임 설정 팝업 쿠키
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    function setCookie(name, value, days) {
+      const date = new Date();
+      date.setDate(date.getDate() + days);
+      document.cookie = `${name}=${value}; path=/; expires=${date.toUTCString()}`;
+    }
+
+    window.onload = function () {
+      const hasNickname = [[${hasNickname}]];
+      const alertShown = getCookie("nicknameAlertShown");
+
+      if (!hasNickname && !alertShown) {
+        alert("닉네임은 프로필 페이지에서 설정 가능합니다.");
+        setCookie("nicknameAlertShown", "true", 7);
+      }
+    };
+  </script>
+
+</head>
+<body style="margin: 0;">
+<div th:replace="~{header :: header}"></div>
+
+<div style="margin-top: 60px; padding: 20px;">
+<h2>trade 페이지</h2>
+</div>
+</body>
+</html>
