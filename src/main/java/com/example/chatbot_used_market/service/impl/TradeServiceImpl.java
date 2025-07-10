@@ -87,6 +87,7 @@ public class TradeServiceImpl implements TradeService {
     private TradeResponseDto convertToResponseDto(Trade trade) {
         TradeResponseDto responseDto = new TradeResponseDto();
         responseDto.setId(trade.getId());
+        responseDto.setSellerId(trade.getSeller().getId()); // 작성자 ID 설정
         responseDto.setTitle(trade.getTitle());
         responseDto.setPrice(trade.getPrice());
         responseDto.setCategory(trade.getCategory());

@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 @Setter
 public class TradeResponseDto {
     private Long id;
+    private Long sellerId; // 작성자 ID 추가
     private String title;
     private Integer price;
     private String category;
