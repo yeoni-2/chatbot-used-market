@@ -32,6 +32,8 @@ build/
 ### VS Code ###
 .vscode/
 
+### postgresql ###
+application-postgresql.properties
 api.txt
 db.sql
 ERD.png
