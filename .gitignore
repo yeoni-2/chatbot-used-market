@@ -34,3 +34,11 @@ build/
 
 ### postgresql ###
 application-postgresql.properties
+
+api.txt
+db.sql
+ERD.png
+feature.txt
+trade-post.png
+trade.png
+write.png

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Header</title>
+  <style>
+    .fixed-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: #f0f0f0;
+      padding: 10px 20px;
+      z-index: 1000;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .fixed-header a {
+      margin-right: 20px;
+      text-decoration: none;
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+<header th:fragment="header">
+    <div class="fixed-header">
+        <a href="/trade">중고거래</a>
+
+        <span style="float:right;">
+        <th:block th:if="${session.loginUserId == null}">
+          <a href="/login">로그인</a>
+        </th:block>
+        <th:block th:if="${session.loginUserId != null}">
+          <a href="/logout">로그아웃</a>
+        </th:block>
+      </span>
+    </div>
+</header>
+</body>
+</html>
