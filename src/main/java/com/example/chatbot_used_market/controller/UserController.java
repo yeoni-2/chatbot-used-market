@@ -102,7 +102,7 @@ public class UserController {
         HttpSession session = request.getSession();
         session.setAttribute("loginUserId", user.getId());
 
-        return "redirect:/trade";
+        return "redirect:/trades";
     }
 
     @GetMapping("/login")
@@ -110,18 +110,7 @@ public class UserController {
         return "login";
     }
 
-    @GetMapping("/trade")
-    public String tradePage(HttpServletRequest request, Model model) {
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            Long userId = (Long) session.getAttribute("loginUserId");
-            if (userId != null) {
-                User user = userService.findById(userId);
-                model.addAttribute("hasNickname", user.getNickname() != null && !user.getNickname().isBlank());
-            }
-        }
-        return "trade";
-    }
+
 
     @GetMapping("/main")
     public String mainPage() {
