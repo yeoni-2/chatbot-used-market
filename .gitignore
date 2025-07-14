@@ -41,6 +41,7 @@ application-google-geocoding.properties
 
 api.txt
 db.sql
+data.sql
 ERD.png
 feature.txt
 trade-post.png
