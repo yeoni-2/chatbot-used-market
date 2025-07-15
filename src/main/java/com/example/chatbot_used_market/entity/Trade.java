@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 public class Trade {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -60,4 +61,3 @@ public class Trade {
         this.updatedAt = LocalDateTime.now();
     }
 }
-
