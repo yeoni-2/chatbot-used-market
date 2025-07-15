@@ -6,6 +6,8 @@ import com.example.chatbot_used_market.dto.MessageDto;
 import com.example.chatbot_used_market.entity.Chatroom;
 import com.example.chatbot_used_market.service.ChatService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -31,8 +33,9 @@ public class ChatController {
     }
 
     @GetMapping("/{id}/messages")
-    public ResponseEntity<List<MessageDto>> getMessages(@PathVariable("id") Long chatroomId) {
-        List<MessageDto> messages = chatService.getMessages(chatroomId);
+    @ResponseBody
+    public ResponseEntity<Slice<MessageDto>> getMessages(@PathVariable("id") Long chatroomId, Pageable pageable) {
+        Slice<MessageDto> messages = chatService.getMessages(chatroomId, pageable);
 
         return ResponseEntity.ok(messages);
     }
