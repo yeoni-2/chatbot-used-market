@@ -272,7 +272,7 @@
 
     <div style="margin-top: 60px; padding: 20px">
       <div class="container">
-        <a href="/trades" class="back-link">&lt; 뒤로가기</a>
+        <a href="/trades" class="back-link">&lt; 목록으로</a>
         <div class="trade-detail">
           <div class="trade-image">
             <img th:src="${trade.tradeImgUrl}" alt="상품 이미지" />
@@ -283,7 +283,7 @@
                 <span class="username">판매자</span>
                 <span class="category" th:text="${trade.category}">카테고리</span>
               </div>
-              <button class="chat-btn">채팅하기</button>
+              <button class="chat-btn" onclick="startChat()">채팅하기</button>
             </div>
             <div class="divider"></div>
             <div class="title-price-section">
@@ -306,5 +306,41 @@
         </div>
       </div>
     </div>
+
+    <script th:inline="javascript">
+      function startChat() {
+        const tradeId = /*[[${trade.id}]]*/ 0;
+
+        // 채팅방 생성 또는 조회
+        fetch("/chats", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            tradeId: tradeId,
+          }),
+        })
+          .then((response) => {
+            if (response.ok) {
+              return response.json();
+            } else if (response.status === 401) {
+              // 로그인되지 않은 경우 로그인 페이지로 이동
+              window.location.href = "/login";
+              throw new Error("로그인이 필요합니다.");
+            } else {
+              throw new Error("채팅방 생성에 실패했습니다.");
+            }
+          })
+          .then((data) => {
+            // 채팅 페이지로 이동
+            window.location.href = "/chats/page";
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("채팅방 생성에 실패했습니다. 다시 시도해주세요.");
+          });
+      }
+    </script>
   </body>
 </html>
