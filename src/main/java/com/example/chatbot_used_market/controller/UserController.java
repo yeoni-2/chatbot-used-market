@@ -6,8 +6,7 @@ import com.example.chatbot_used_market.service.UserService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @Controller
 public class UserController {
@@ -62,8 +61,7 @@ public class UserController {
         User user = new User(dto.getUsername(), dto.getNickname(), dto.getPassword());
         userService.saveUser(user);
 
-        model.addAttribute("success", true);
-        return "signup";
+        return "redirect:/login?signupSuccess=true";
     }
 
     // 중복 확인 API
@@ -79,51 +77,35 @@ public class UserController {
         return userService.isNicknameDuplicate(nickname);
     }
 
-    // 로그인
-    @PostMapping("/login")
-    public String login(
-            @RequestParam String username,
-            @RequestParam String password,
-            Model model,
-            HttpServletRequest request
-    ) {
-        User user = userService.findByUsername(username);
-        if (user == null) {
-            model.addAttribute("error", "존재하지 않는 아이디입니다.");
-            return "login";
-        }
-
-        if (!user.getPassword().equals(password)) {
-            model.addAttribute("error", "비밀번호가 틀렸습니다.");
-            return "login";
-        }
-
-        // 로그인 성공 시 세션에 사용자 id 저장
-        HttpSession session = request.getSession();
-        session.setAttribute("loginUserId", user.getId());
-
-        return "redirect:/trades";
-    }
-
     @GetMapping("/login")
     public String loginForm() {
         return "login";
     }
 
+    @GetMapping("/trade")
+    public String tradePage(Model model, @AuthenticationPrincipal Object principal) {
+        String username = null;
+        User user = null;
 
+        if (principal instanceof org.springframework.security.core.userdetails.User userDetails) {
+            username = userDetails.getUsername();
+            user = userService.findByUsername(username);
+        } else if (principal instanceof org.springframework.security.oauth2.core.user.OAuth2User oauth2User) {
+            username = oauth2User.getAttribute("email");
+            user = userService.findByEmail(username);
+        }
+
+        if (user != null) {
+            model.addAttribute("hasNickname", user.getNickname() != null && !user.getNickname().isBlank());
+        } else {
+            model.addAttribute("hasNickname", false);
+        }
+
+        return "trade";
+    }
 
     @GetMapping("/main")
     public String mainPage() {
         return "main";
-    }
-
-    // 로그아웃
-    @GetMapping("/logout")
-    public String logout(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
-        return "redirect:/main";
     }
 }
