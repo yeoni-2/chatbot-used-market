@@ -9,4 +9,7 @@ import java.util.List;
 @Repository
 public interface TradeRepository extends JpaRepository<Trade, Long> {
     List<Trade> findByStatusOrderByViewCountDesc(String status);
+    
+    // 제목에 키워드가 포함된 게시글 검색
+    List<Trade> findByTitleContainingAndStatusOrderByViewCountDesc(String keyword, String status);
 }

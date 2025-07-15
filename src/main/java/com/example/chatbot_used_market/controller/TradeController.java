@@ -37,6 +37,20 @@ public class TradeController {
         return "trade";
     }
     
+    // 검색 기능
+    @GetMapping("/search")
+    public String searchTrades(@RequestParam String keyword, Model model, HttpSession session) {
+        List<TradeResponseDto> trades = tradeService.searchTradesByKeyword(keyword);
+        model.addAttribute("trades", trades);
+        model.addAttribute("keyword", keyword);
+        
+        // 로그인된 사용자 ID 전달
+        Long loginUserId = (Long) session.getAttribute("loginUserId");
+        model.addAttribute("loginUserId", loginUserId);
+        
+        return "search";
+    }
+    
     @GetMapping("/write")
     public String writeForm(HttpSession session) {
         // 로그인 확인

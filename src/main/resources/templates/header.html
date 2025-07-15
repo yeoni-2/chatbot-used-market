@@ -1,42 +1,93 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <title>Header</title>
-  <style>
-    .fixed-header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background: #f0f0f0;
-      padding: 10px 20px;
-      z-index: 1000;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .fixed-header a {
-      margin-right: 20px;
-      text-decoration: none;
-      font-weight: bold;
-      color: #333;
-    }
-  </style>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Header</title>
+    <style>
+      .fixed-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background: #f0f0f0;
+        padding: 10px 20px;
+        z-index: 1000;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .fixed-header a {
+        margin-right: 20px;
+        text-decoration: none;
+        font-weight: bold;
+        color: #333;
+      }
+      .search-container {
+        display: flex;
+        align-items: center;
+        flex: 1;
+        max-width: 400px;
+        margin: 0 20px;
+      }
+      .search-input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        font-size: 14px;
+        outline: none;
+      }
+      .search-input:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+      }
+      .search-button {
+        background: #3498db;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 20px;
+        margin-left: 8px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .search-button:hover {
+        background: #2980b9;
+      }
+      .header-left {
+        display: flex;
+        align-items: center;
+      }
+      .header-right {
+        display: flex;
+        align-items: center;
+      }
+    </style>
+  </head>
+  <body>
+    <header th:fragment="header">
+      <div class="fixed-header">
+        <div class="header-left">
+          <a href="/trade">중고거래</a>
+        </div>
 
-<header th:fragment="header">
-    <div class="fixed-header">
-        <a href="/trade">중고거래</a>
+        <div class="search-container">
+          <form action="/trades/search" method="GET" style="display: flex; width: 100%">
+            <input type="text" name="keyword" placeholder="검색어를 입력하세요..." class="search-input" th:value="${param.keyword}" />
+            <button type="submit" class="search-button">검색</button>
+          </form>
+        </div>
 
-        <span style="float:right;">
-        <th:block th:if="${session.loginUserId == null}">
-          <a href="/login">로그인</a>
-        </th:block>
-        <th:block th:if="${session.loginUserId != null}">
-          <a href="/logout">로그아웃</a>
-        </th:block>
-      </span>
-    </div>
-</header>
-</body>
+        <div class="header-right">
+          <th:block th:if="${session.loginUserId == null}">
+            <a href="/login">로그인</a>
+          </th:block>
+          <th:block th:if="${session.loginUserId != null}">
+            <a href="/logout">로그아웃</a>
+          </th:block>
+        </div>
+      </div>
+    </header>
+  </body>
 </html>

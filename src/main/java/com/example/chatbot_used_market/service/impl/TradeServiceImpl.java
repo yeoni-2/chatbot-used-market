@@ -31,6 +31,14 @@ public class TradeServiceImpl implements TradeService {
     }
     
     @Override
+    public List<TradeResponseDto> searchTradesByKeyword(String keyword) {
+        List<Trade> trades = tradeRepository.findByTitleContainingAndStatusOrderByViewCountDesc(keyword, "판매중");
+        return trades.stream()
+                .map(this::convertToResponseDto)
+                .toList();
+    }
+    
+    @Override
     public TradeResponseDto createTrade(TradeRequestDto requestDto, User seller) {
         Trade trade = new Trade();
         trade.setTitle(requestDto.getTitle());
