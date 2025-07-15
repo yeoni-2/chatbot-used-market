@@ -40,7 +40,10 @@ public class LoginUserAdvice {
             }
             if (user != null) {
                 session.setAttribute("loginUserId", user.getId());
-                session.setAttribute("loginUser", user);
+                session.setAttribute("loginUsername", user.getUsername());
+                session.setAttribute("loginNickname", user.getNickname());
+                session.setAttribute("loginEmail", user.getEmail());
+                session.setAttribute("loginProfileImgUrl", user.getProfileImgUrl());
             }
         }
     }

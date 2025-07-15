@@ -33,6 +33,9 @@ public class User {
     @Column(name = "email", unique = true, length = 100)
     private String email;
 
+    @Column(name = "profile_img_url", length = 100)
+    private String profileImgUrl;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
