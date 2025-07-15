@@ -3,6 +3,7 @@ package com.example.chatbot_used_market.service.impl;
 import com.example.chatbot_used_market.entity.User;
 import com.example.chatbot_used_market.repository.UserRepository;
 import com.example.chatbot_used_market.service.UserService;
+import org.locationtech.jts.geom.Point;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -75,5 +76,10 @@ public class UserServiceImpl implements UserService {
                 .uri("?key={apiKey}&address="+String.join(",", location.split(" ")))
                 .retrieve()
                 .bodyToMono(String.class);
+    }
+
+    @Override
+    public void updatePositionById(Long id, double latitude, double longitude) {
+        userRepository.updatePositionById(id, String.format("POINT(%f %f)", longitude, latitude));
     }
 }
