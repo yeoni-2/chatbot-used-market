@@ -4,16 +4,6 @@
   <meta charset="UTF-8" />
   <title>회원가입</title>
 
-  <script th:inline="javascript">
-    /*<![CDATA[*/
-    let success = /*[[${success}]]*/ false;
-    if (success) {
-      alert("회원가입에 성공했습니다. 로그인 화면으로 이동합니다.");
-      window.location.href = "/login";
-    }
-    /*]]>*/
-  </script>
-
   <script>
     async function checkUsername() {
       const username = document.getElementById("username").value;
@@ -94,7 +84,7 @@
 
 <div th:if="${error}" style="color:red;" th:text="${error}"></div>
 
-<form method="post" th:object="${user}">
+<form method="post" th:object="${user}" th:action="@{/signup}">
 
   <label>
     아이디:

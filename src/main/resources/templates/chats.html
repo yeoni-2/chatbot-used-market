@@ -20,8 +20,7 @@
 <body>
 <div id="left-frame">
     <h1>내 채팅 목록</h1>
-    <div id="chatroom-list">
-    </div>
+    <div id="chatroom-list"></div>
 </div>
 <div id="right-frame">
     <div id="message-container">
@@ -45,15 +44,15 @@
     const messageForm = document.getElementById('message-form');
     const messageInput = document.getElementById('message-input');
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         loadChatrooms();
 
-        messageForm.addEventListener('submit', function(event) {
+        messageForm.addEventListener('submit', function (event) {
             event.preventDefault();
             sendMessage();
         });
 
-        messageContainer.addEventListener('scroll', function() {
+        messageContainer.addEventListener('scroll', function () {
             if (this.scrollTop < 1 && !isLoading && !isLastPage) {
                 loadMoreMessages();
             }
@@ -91,11 +90,11 @@
         if (ws) ws.close();
         ws = new WebSocket("ws://localhost:8080/ws/chat");
 
-        ws.onopen = function(event) {
+        ws.onopen = function (event) {
             ws.send(JSON.stringify({ type: 'JOIN', chatroomId: currentChatroomId }));
         };
 
-        ws.onmessage = function(event) {
+        ws.onmessage = function (event) {
             const message = JSON.parse(event.data);
 
             appendMessage(message);

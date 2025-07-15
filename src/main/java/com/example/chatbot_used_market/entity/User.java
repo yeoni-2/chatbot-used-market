@@ -18,14 +18,20 @@ public class User {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "username", unique = true, nullable = false, length = 50)
+    @Column(name = "provider_id", length = 100)
+    private String providerId;
+
+    @Column(name = "username", unique = true, length = 50)
     private String username;
 
     @Column(name = "nickname", unique = true, length = 50)
     private String nickname;
 
-    @Column(name = "password", nullable = false, length = 50)
+    @Column(name = "password", length = 255)
     private String password;
+
+    @Column(name = "email", unique = true, length = 100)
+    private String email;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -43,5 +49,12 @@ public class User {
         this.username = username;
         this.nickname = nickname;
         this.password = password;
+    }
+
+    public User(String email, String nickname, String password, String providerId) {
+        this.email = email;
+        this.nickname = nickname;
+        this.password = password;
+        this.providerId = providerId;
     }
 }
