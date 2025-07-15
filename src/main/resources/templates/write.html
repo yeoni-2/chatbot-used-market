@@ -296,6 +296,7 @@
               <label class="form-label">카테고리</label>
               <select id="category" name="category" class="form-select" required>
                 <option value="">카테고리를 선택해주세요</option>
+                <option value="식품" th:selected="${trade?.category == '스포츠'}">식품</option>
                 <option value="전자기기" th:selected="${trade?.category == '전자기기'}">전자기기</option>
                 <option value="의류" th:selected="${trade?.category == '의류'}">의류</option>
                 <option value="도서" th:selected="${trade?.category == '도서'}">도서</option>
