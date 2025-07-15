@@ -99,4 +99,9 @@ public class TradeServiceImpl implements TradeService {
         
         return responseDto;
     }
+
+    @Override
+    public Trade findById(Long id) {
+        return tradeRepository.findById(id).orElse(null);
+    }
 }
