@@ -25,13 +25,23 @@ public class OAuth2Controller {
 
         User user = userService.findByEmail(email);
         if (user == null) {
-            String nickname = userService.isNicknameDuplicate(name) ? null : name;
+            String nickname = null;
+
+            //닉네임 중복 검사
+            boolean isDuplicate = userService.isNicknameDuplicate(name);
+
+            //닉네임 유효성 검사
+            boolean isValid = userService.isValidNickname(name);
+
+            if (!isDuplicate && isValid) {
+                nickname = name;
+            } else {
+                nickname = null;
+            }
 
             user = new User(email, nickname, null, providerId);
             userService.saveUser(user);
         }
-
-        session.setAttribute("user", user);
 
         return "redirect:/trade";
     }
