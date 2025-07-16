@@ -1,30 +1,33 @@
-package com.example.chatbot_used_market.config;
+package com.example.chatbot_used_market.interceptor;
 
 import com.example.chatbot_used_market.entity.User;
 import com.example.chatbot_used_market.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.servlet.HandlerInterceptor;
 
-@ControllerAdvice
-public class LoginUserAdvice {
+public class LoginUserInterceptor implements HandlerInterceptor {
 
     private final UserService userService;
 
-    public LoginUserAdvice(UserService userService) {
+    public LoginUserInterceptor(UserService userService) {
         this.userService = userService;
     }
 
-    @ModelAttribute
-    public void addLoginUserToSession(@AuthenticationPrincipal Object principal, HttpSession session, Model model) {
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        HttpSession session = request.getSession();
+
+        // 이미 세션에 저장된 경우 스킵
         if (session.getAttribute("loginUserId") != null) {
-            return;
+            return true;
         }
 
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String identifier = null;
 
         if (principal instanceof UserDetails userDetails) {
@@ -38,6 +41,7 @@ public class LoginUserAdvice {
             if (user == null) {
                 user = userService.findByEmail(identifier);
             }
+
             if (user != null) {
                 session.setAttribute("loginUserId", user.getId());
                 session.setAttribute("loginUsername", user.getUsername());
@@ -46,5 +50,7 @@ public class LoginUserAdvice {
                 session.setAttribute("loginProfileImgUrl", user.getProfileImgUrl());
             }
         }
+
+        return true;
     }
 }
