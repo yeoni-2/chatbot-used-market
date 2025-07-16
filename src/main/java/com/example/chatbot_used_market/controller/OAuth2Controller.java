@@ -1,5 +1,6 @@
 package com.example.chatbot_used_market.controller;
 
+import com.example.chatbot_used_market.entity.AuthProvider;
 import com.example.chatbot_used_market.entity.User;
 import com.example.chatbot_used_market.service.UserService;
 import jakarta.servlet.http.HttpSession;
@@ -45,7 +46,7 @@ public class OAuth2Controller {
                 nickname = null;
             }
 
-            user = new User(email, nickname, null, providerId);
+            user = new User(email, nickname, null, providerId, AuthProvider.GOOGLE);
             userService.saveUser(user);
         }
 
