@@ -2,6 +2,7 @@ package com.example.chatbot_used_market.controller;
 
 import com.example.chatbot_used_market.dto.ChatbotDto;
 import com.example.chatbot_used_market.service.ChatbotService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -15,9 +16,8 @@ public class ChatbotController {
 
     @PostMapping("/messages")
     @ResponseBody
-    public ResponseEntity<ChatbotDto.Response> getChatbotReply(@RequestBody ChatbotDto.Request request) {
-        // TODO: 실제 로그인한 사용자 ID를 가져와야 합니다.
-        Long currentUserId = 1L;
+    public ResponseEntity<ChatbotDto.Response> getChatbotReply(@RequestBody ChatbotDto.Request request, HttpSession session) {
+        Long currentUserId = (Long) session.getAttribute("loginUserId");
         String botReply = chatbotService.getChatbotReply(currentUserId, request.getUserMessage());
         ChatbotDto.Response response = new ChatbotDto.Response(botReply);
 

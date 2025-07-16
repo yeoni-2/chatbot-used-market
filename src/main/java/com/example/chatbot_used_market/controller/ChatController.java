@@ -24,14 +24,11 @@ public class ChatController {
 
     // 채팅방 생성 또는 조회
     @PostMapping
+    @ResponseBody
     public ResponseEntity<ChatroomDto.Response> createOrGetChatroom(@RequestBody ChatroomDto.Request request, HttpSession session) {
-        // 세션에서 로그인한 사용자 ID를 가져옵니다.
         Long currentUserId = (Long) session.getAttribute("loginUserId");
-        if (currentUserId == null) {
-            return ResponseEntity.status(401).build(); // 로그인되지 않은 경우
-        }
-        
         Chatroom chatroom = chatService.createOrGetChatroom(request.getTradeId(), currentUserId);
+
         ChatroomDto.Response response = new ChatroomDto.Response(chatroom.getId());
 
         return ResponseEntity.ok(response);
@@ -61,10 +58,6 @@ public class ChatController {
     @ResponseBody
     public ResponseEntity<List<ChatroomListDto>> getMyChatrooms(HttpSession session) {
         Long currentUserId = (Long) session.getAttribute("loginUserId");
-        if (currentUserId == null) {
-            return ResponseEntity.status(401).build(); // 로그인되지 않은 경우
-        }
-        
         List<ChatroomListDto> chatrooms = chatService.findMyChatrooms(currentUserId);
 
         return ResponseEntity.ok(chatrooms);
