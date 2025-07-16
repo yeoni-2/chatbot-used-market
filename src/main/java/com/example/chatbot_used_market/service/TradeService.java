@@ -9,6 +9,7 @@ import java.util.List;
 public interface TradeService {
     List<TradeResponseDto> getAllTrades();
     List<TradeResponseDto> searchTradesByKeyword(String keyword);
+    List<TradeResponseDto> searchTradesByKeywordAndCategory(String keyword, String category);
     TradeResponseDto createTrade(TradeRequestDto requestDto, User seller);
     TradeResponseDto getTradeById(Long id);
     TradeResponseDto updateTrade(Long id, TradeRequestDto requestDto, User seller);

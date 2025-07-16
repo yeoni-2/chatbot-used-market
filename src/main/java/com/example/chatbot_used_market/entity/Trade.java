@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "trades")
@@ -25,28 +27,32 @@ public class Trade {
     @JoinColumn(name = "buyer_id")
     private User buyer;
 
-    @Column(nullable = false)
+    @Column(name = "title", nullable = false)
     private String title;
 
-    @Column(nullable = false)
+    @Column(name = "description", nullable = false)
     private String description;
 
-    @Column(nullable = false)
+    @Column(name = "price", nullable = false)
     private Integer price;
 
-    private String tradeImgUrl;
-
-    @Column(nullable = false)
+    @Column(name = "category", nullable = false)
     private String category;
 
-    @Column(nullable = false)
+    @Column(name = "status", nullable = false)
     private String status;
 
+    @Column(name = "view_count")
     private Integer viewCount;
 
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "trade", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<TradeImage> tradeImages = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {

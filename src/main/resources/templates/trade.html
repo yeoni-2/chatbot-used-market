@@ -228,12 +228,7 @@
 
         <div th:if="${!#lists.isEmpty(trades)}" class="trades-grid">
           <div th:each="trade : ${trades}" class="trade-card" th:onclick="|location.href='/trades/' + ${trade.id}|">
-            <img
-              th:src="${trade.tradeImgUrl}"
-              alt="상품 이미지"
-              class="trade-image"
-              th:onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjhmOWZhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OTk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlPC90ZXh0Pjwvc3ZnPg=='"
-            />
+            <img th:src="${trade.imageUrls[0]}" alt="상품 이미지" class="trade-image" />
             <div class="trade-content">
               <h3 class="trade-title" th:text="${trade.title}">제목</h3>
               <div class="trade-price" th:text="${trade.price + ' 원'}">가격</div>
@@ -250,7 +245,6 @@
         </div>
       </div>
 
-      <!-- 플로팅 버튼 -->
       <a href="/trades/write" class="floating-btn" title="글쓰기"> 거래글쓰기 </a>
     </div>
   </body>

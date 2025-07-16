@@ -38,6 +38,21 @@
         width: 300px;
       }
 
+      .category-select {
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+        background-color: white;
+        cursor: pointer;
+        min-width: 120px;
+      }
+
+      .category-select:focus {
+        outline: none;
+        border-color: #3498db;
+      }
+
       .search-button {
         padding: 8px 16px;
         background-color: #3498db;
@@ -83,6 +98,16 @@
 
           <div class="search-container">
             <form th:action="@{/trades/search}" method="get" style="display: flex; align-items: center; gap: 10px">
+              <select name="category" class="category-select">
+                <option value="">전체</option>
+                <option value="전자기기">전자기기</option>
+                <option value="의류">의류</option>
+                <option value="도서">도서</option>
+                <option value="가구">가구</option>
+                <option value="스포츠">스포츠</option>
+                <option value="뷰티">뷰티</option>
+                <option value="기타">기타</option>
+              </select>
               <input type="text" name="keyword" class="search-input" placeholder="검색어를 입력하세요..." th:value="${keyword}" />
               <button type="submit" class="search-button">검색</button>
             </form>
@@ -103,5 +128,18 @@
         </span>
       </div>
     </header>
+
+    <script th:inline="javascript">
+      // 페이지 로드 시 선택된 카테고리 설정
+      document.addEventListener("DOMContentLoaded", function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const selectedCategory = urlParams.get("category");
+        const categorySelect = document.querySelector('select[name="category"]');
+
+        if (selectedCategory && categorySelect) {
+          categorySelect.value = selectedCategory;
+        }
+      });
+    </script>
   </body>
 </html>

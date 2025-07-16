@@ -39,10 +39,22 @@ public class TradeController {
     
     // 검색 기능
     @GetMapping("/search")
-    public String searchTrades(@RequestParam String keyword, Model model, HttpSession session) {
-        List<TradeResponseDto> trades = tradeService.searchTradesByKeyword(keyword);
+    public String searchTrades(@RequestParam String keyword, 
+                              @RequestParam(required = false) String category, 
+                              Model model, HttpSession session) {
+        List<TradeResponseDto> trades;
+        
+        if (category != null && !category.isEmpty()) {
+            // 키워드와 카테고리 모두로 검색
+            trades = tradeService.searchTradesByKeywordAndCategory(keyword, category);
+        } else {
+            // 키워드만으로 검색
+            trades = tradeService.searchTradesByKeyword(keyword);
+        }
+        
         model.addAttribute("trades", trades);
         model.addAttribute("keyword", keyword);
+        model.addAttribute("selectedCategory", category);
         
         // 로그인된 사용자 ID 전달
         Long loginUserId = (Long) session.getAttribute("loginUserId");

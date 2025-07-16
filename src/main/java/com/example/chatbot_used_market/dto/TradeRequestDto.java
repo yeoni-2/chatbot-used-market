@@ -10,5 +10,5 @@ public class TradeRequestDto {
     private Integer price;
     private String category;
     private String description;
-    private String tradeImgUrl;
+    // tradeImgUrl 관련 코드 완전 삭제
 }

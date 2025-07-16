@@ -39,13 +39,20 @@ public class TradeServiceImpl implements TradeService {
     }
     
     @Override
+    public List<TradeResponseDto> searchTradesByKeywordAndCategory(String keyword, String category) {
+        List<Trade> trades = tradeRepository.findByTitleContainingAndCategoryAndStatusOrderByViewCountDesc(keyword, category, "판매중");
+        return trades.stream()
+                .map(this::convertToResponseDto)
+                .toList();
+    }
+    
+    @Override
     public TradeResponseDto createTrade(TradeRequestDto requestDto, User seller) {
         Trade trade = new Trade();
         trade.setTitle(requestDto.getTitle());
         trade.setPrice(requestDto.getPrice());
         trade.setCategory(requestDto.getCategory());
         trade.setDescription(requestDto.getDescription());
-        trade.setTradeImgUrl(requestDto.getTradeImgUrl());
         trade.setSeller(seller);
         
         Trade savedTrade = tradeRepository.save(trade);
@@ -69,7 +76,6 @@ public class TradeServiceImpl implements TradeService {
         trade.setPrice(requestDto.getPrice());
         trade.setCategory(requestDto.getCategory());
         trade.setDescription(requestDto.getDescription());
-        trade.setTradeImgUrl(requestDto.getTradeImgUrl());
         
         Trade updatedTrade = tradeRepository.save(trade);
         return convertToResponseDto(updatedTrade);
@@ -95,16 +101,26 @@ public class TradeServiceImpl implements TradeService {
     private TradeResponseDto convertToResponseDto(Trade trade) {
         TradeResponseDto responseDto = new TradeResponseDto();
         responseDto.setId(trade.getId());
-        responseDto.setSellerId(trade.getSeller().getId()); // 작성자 ID 설정
+        responseDto.setSellerId(trade.getSeller().getId());
         responseDto.setTitle(trade.getTitle());
         responseDto.setPrice(trade.getPrice());
         responseDto.setCategory(trade.getCategory());
         responseDto.setDescription(trade.getDescription());
-        responseDto.setTradeImgUrl(trade.getTradeImgUrl());
+        
+        // 모든 이미지 URL 설정
+        if (trade.getTradeImages() != null && !trade.getTradeImages().isEmpty()) {
+            List<String> imageUrls = trade.getTradeImages().stream()
+                    .map(tradeImage -> tradeImage.getUrl())
+                    .toList();
+            responseDto.setImageUrls(imageUrls);
+        } else {
+            // 기본 이미지 설정
+            responseDto.setImageUrls(List.of("/images/default-trade.jpg"));
+        }
+        
         responseDto.setStatus(trade.getStatus());
         responseDto.setViewCount(trade.getViewCount());
         responseDto.setCreatedAt(trade.getCreatedAt());
-        
         return responseDto;
     }
 }

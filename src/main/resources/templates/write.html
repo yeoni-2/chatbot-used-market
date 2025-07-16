@@ -63,12 +63,12 @@
         align-items: stretch;
       }
 
-      .image-section {
+      /* .image-section {
         width: 30%;
         flex-shrink: 0;
         display: flex;
         flex-direction: column;
-      }
+      } */
 
       .info-section {
         width: 40%;
@@ -89,7 +89,7 @@
         font-size: 14px;
       }
 
-      .image-upload-area {
+      /* .image-upload-area {
         border: 2px dashed #dee2e6;
         border-radius: 8px;
         padding: 15px 10px;
@@ -214,15 +214,15 @@
           gap: 15px;
         }
 
-        .image-section {
+        /* .image-section {
           width: 100%;
-        }
+        } */
 
         .info-section {
           width: 100%;
         }
 
-        .image-upload-area {
+        /* .image-upload-area {
           min-height: 80px;
           padding: 20px;
         }
@@ -256,22 +256,6 @@
 
       <form th:action="${trade != null ? '/trades/' + trade.id : '/trades'}" method="post">
         <div class="form-row">
-          <div class="image-section">
-            <label class="form-label">이미지</label>
-            <div class="image-upload-area" onclick="document.getElementById('tradeImgUrl').click()">
-              <img src="/img/camera-icon.png" alt="이미지 업로드" />
-              <div class="image-upload-text">이미지 URL</div>
-            </div>
-            <input
-              type="text"
-              id="tradeImgUrl"
-              name="tradeImgUrl"
-              class="form-input hidden-input"
-              placeholder="이미지 URL을 입력해주세요"
-              th:value="${trade?.tradeImgUrl}"
-            />
-          </div>
-
           <div class="info-section">
             <div class="form-group">
               <label class="form-label">제목</label>
