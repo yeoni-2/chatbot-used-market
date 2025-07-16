@@ -34,9 +34,6 @@ public class SecurityConfig {
                 .oauth2Login(oauth -> oauth
                         .loginPage("/login")
                         .defaultSuccessUrl("/oauth2/success", true)
-                )
-                .logout(logout -> logout
-                        .logoutSuccessUrl("/main")
                 );
 
         return http.build();

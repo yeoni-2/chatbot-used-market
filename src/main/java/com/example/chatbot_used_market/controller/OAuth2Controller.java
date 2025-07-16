@@ -24,6 +24,12 @@ public class OAuth2Controller {
         String providerId = oauthUser.getAttribute("sub");
 
         User user = userService.findByEmail(email);
+
+        // 동일한 이메일을 사용하는 다른 OAuth2 로그인 막기
+        if (user != null && (user.getProviderId() == null || !user.getProviderId().equals(providerId))) {
+            return "redirect:/login?error=email";
+        }
+
         if (user == null) {
             String nickname = null;
 
