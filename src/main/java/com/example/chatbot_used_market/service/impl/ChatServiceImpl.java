@@ -12,6 +12,8 @@ import com.example.chatbot_used_market.repository.TradeRepository;
 import com.example.chatbot_used_market.repository.UserRepository;
 import com.example.chatbot_used_market.service.ChatService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,9 +46,10 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public List<MessageDto> getMessages(Long chatroomId) {
-        return messageRepository.findByChatroomIdOrderByCreatedAtAsc(chatroomId)
-                .stream().map(MessageDto::new).collect(Collectors.toList());
+    public Slice<MessageDto> getMessages(Long chatroomId, Pageable pageable) {
+        Slice<Message> messages = messageRepository.findByChatroomIdOrderByCreatedAtDesc(chatroomId, pageable);
+
+        return messages.map(MessageDto::new);
     }
 
     @Override
