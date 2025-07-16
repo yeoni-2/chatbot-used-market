@@ -73,6 +73,13 @@
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		<!--		https://mvnrepository.com/artifact/org.hibernate/hibernate-spatial/7.0.5.Final-->
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-spatial</artifactId>
+			<version>7.0.5.Final</version>
+			<type>pom</type>
+		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
@@ -91,14 +98,6 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>
-		</dependency>
-
-<!--		https://mvnrepository.com/artifact/org.hibernate/hibernate-spatial/7.0.5.Final-->
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-spatial</artifactId>
-			<version>7.0.5.Final</version>
-			<type>pom</type>
 		</dependency>
 	</dependencies>
 
