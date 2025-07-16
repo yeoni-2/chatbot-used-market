@@ -3,7 +3,6 @@ package com.example.chatbot_used_market.controller;
 import com.example.chatbot_used_market.dto.ReviewDto;
 import com.example.chatbot_used_market.entity.Trade;
 import com.example.chatbot_used_market.entity.User;
-import com.example.chatbot_used_market.service.AuthService;
 import com.example.chatbot_used_market.service.ReviewService;
 import com.example.chatbot_used_market.service.TradeService;
 import com.example.chatbot_used_market.service.impl.UserServiceImpl;

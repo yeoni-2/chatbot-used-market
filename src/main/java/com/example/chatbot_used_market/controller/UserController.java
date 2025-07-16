@@ -120,16 +120,6 @@ public class UserController {
         return "main";
     }
 
-    // 로그아웃
-    @GetMapping("/logout")
-    public String logout(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
-        return "redirect:/main";
-    }
-
     @GetMapping("/users/{id}/locations")
     public String userLocation(){
         return "location";

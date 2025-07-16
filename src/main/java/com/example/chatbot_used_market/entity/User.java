@@ -43,10 +43,8 @@ public class User {
     @OneToMany(mappedBy = "buyer", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Trade> buyingTrades = new ArrayList<>();
 
-    private String email;
     @Enumerated(EnumType.STRING)
     private AuthProvider provider;
-    private String providerId;
 
     private String location;
 

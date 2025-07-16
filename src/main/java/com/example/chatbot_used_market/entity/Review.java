@@ -21,7 +21,7 @@ public class Review {
   @JoinColumn(name = "reviewer")
   private User reviewer;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @NotNull
   @JoinColumn(name = "reviewee")
   private User reviewee;

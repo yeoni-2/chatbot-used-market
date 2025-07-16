@@ -12,6 +12,6 @@ import java.util.List;
 public interface ReviewRepository extends JpaRepository<Review, Long> {
   List<Review> findByTradeId(Long tradeId);
 
-  @Query(value = "SELECT * FROM USER WHERE reviewer=:userId OR reviewee=:userId", nativeQuery = true)
+  @Query(value = "SELECT * FROM users WHERE reviewer=:userId OR reviewee=:userId", nativeQuery = true)
   List<Review> findByUserId(@Param("userId") Long userId);
 }
