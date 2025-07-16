@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>동네 인증</title>
+    <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script>
+      //본 예제에서는 도로명 주소 표기 방식에 대한 법령에 따라, 내려오는 데이터를 조합하여 올바른 주소를 구성하는 방법을 설명합니다.
+      function sample4_execDaumPostcode() {
+          new daum.Postcode({
+              oncomplete: function(data) {
+                  // get dong name
+                  if (data.jibunAddress === '' && data.autoJibunAddress === '') console.error("no data");
+                  const jAddr = data.jibunAddress || data.autoJibunAddress;
+                  const jAddrArr = jAddr.split(" ");
+                  let p = -1;
+                  for (let i=jAddrArr.length-1; i>=0; --i){
+                    if (/동$/gi.test(jAddrArr[i])){
+                      p = i;
+                      break;
+                    }
+                  }
+                  const dongName = jAddrArr.slice(0, p+1).join(" ");
+                  console.log(dongName);
+                  if (!!dongName) document.querySelector("#dongName").textContent = `동 이름: ${dongName}`;
+              }
+          }).open();
+      }
+
+      function getCurrentLocation(){
+        const status = document.querySelector("#status");
+
+        function success(position){
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+
+          status.textContent = "";
+
+          document.querySelector("#result").textContent = `latitude: ${latitude}, longitude: ${longitude}`;
+        }
+
+        function error(){
+          status.textContent = "unable to retrieve your location";
+        }
+
+        if (!navigator.geolocation) status.textContent = "geolocation is not supported by your browser";
+        else {
+          status.textContent = "Locating...";
+          navigator.geolocation.getCurrentPosition(success, error);
+        }
+      }
+
+      function userAgreeHandler(e){
+        if (e.target.checked){
+          document.querySelector("#inputLocationBtn").removeAttribute("disabled");
+          getCurrentLocation();
+        }else {
+          document.querySelector("#inputLocationBtn").setAttribute("disabled", "");
+        }
+      }
+
+      addEventListener("load", (e) => {
+        // getCurrentLocation();
+        document.querySelector("#userAgree").addEventListener("change", userAgreeHandler);
+      });
+    </script>
+    <style>
+      body {
+        margin: 0;
+        background-color: #fffae0;
+      }
+
+      .mainContainer {
+        display: grid;
+        justify-content: center;
+        width: 100%;
+        height: 100vh;
+        margin: 0;
+      }
+
+      .mainContainer > input {
+        max-width: 50vw;
+        height: 100px;
+      }
+
+      .topbar {
+        width: 100%;
+        height: 100px;
+        background-color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mainContainer">
+      <div class="topbar"></div>
+      <div>
+        <span id="postcode">asdf</span>
+        <input type="checkbox" name="userAgree" id="userAgree">
+        <label for="userAgree">위치 정보 활용에 동의하시려면 체크해주세요</label>
+        <input type="button" onclick="sample4_execDaumPostcode()" value="내 주소 입력하기" id="inputLocationBtn" disabled><br>
+      </div>
+
+      <!-- location -->
+      <p id="status"></p>
+      <p id="dongName"></p>
+      <p id="result"></p>
+    </div>
+  </body>
+</html>

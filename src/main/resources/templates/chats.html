@@ -20,8 +20,7 @@
 <body>
 <div id="left-frame">
     <h1>내 채팅 목록</h1>
-    <div id="chatroom-list">
-    </div>
+    <div id="chatroom-list"></div>
 </div>
 <div id="right-frame">
     <div id="message-container">
@@ -36,15 +35,27 @@
 <script th:inline="javascript">
     let ws;
     let currentChatroomId = null;
+    let currentPage = 0;
+    let isLastPage = false;
+    let isLoading = false;
 
-    document.addEventListener('DOMContentLoaded', function() {
+    const chatroomListDiv = document.getElementById('chatroom-list');
+    const messageContainer = document.getElementById('message-container');
+    const messageForm = document.getElementById('message-form');
+    const messageInput = document.getElementById('message-input');
+
+    document.addEventListener('DOMContentLoaded', function () {
         loadChatrooms();
 
-        const messageForm = document.getElementById('message-form');
-
-        messageForm.addEventListener('submit', function(event) {
+        messageForm.addEventListener('submit', function (event) {
             event.preventDefault();
             sendMessage();
+        });
+
+        messageContainer.addEventListener('scroll', function () {
+            if (this.scrollTop < 1 && !isLoading && !isLastPage) {
+                loadMoreMessages();
+            }
         });
     });
 
@@ -52,8 +63,6 @@
         fetch('/chats')
             .then(response => response.json())
             .then(data => {
-                const chatroomListDiv = document.getElementById('chatroom-list');
-
                 chatroomListDiv.innerHTML = '';
                 data.forEach(chatroom => {
                     const chatroomElement = document.createElement('div');
@@ -62,7 +71,6 @@
                     chatroomElement.textContent = chatroom.opponentNickname + '님과의 대화';
                     chatroomElement.dataset.chatroomId = chatroom.chatroomId;
                     chatroomElement.addEventListener('click', () => {
-                        document.getElementById('message-container').innerHTML = '';
                         loadMessages(chatroom.chatroomId);
                     });
                     chatroomListDiv.appendChild(chatroomElement);
@@ -72,59 +80,75 @@
 
     function loadMessages(chatroomId) {
         currentChatroomId = chatroomId;
+        currentPage = 0;
+        isLastPage = false;
+        messageContainer.innerHTML = '';
+        messageForm.style.display = 'flex';
 
-        const messageContainer = document.getElementById('message-container');
-        const messageForm = document.getElementById('message-form');
+        loadMoreMessages();
 
-        fetch(`/chats/${chatroomId}/messages`)
-            .then(response => response.json())
-            .then(data => {
-                messageContainer.innerHTML = '';
-                data.forEach(message => {
-                    appendMessage(message);
-                });
-                messageContainer.scrollTop = messageContainer.scrollHeight;
-            });
-
-        if (ws)
-            ws.close();
-
+        if (ws) ws.close();
         ws = new WebSocket("ws://localhost:8080/ws/chat");
 
-        ws.onopen = function(event) {
-            console.log("WebSocket 연결 성공");
-
-            const joinMessage = {
-                type: 'JOIN',
-                chatroomId: currentChatroomId
-            };
-
-            ws.send(JSON.stringify(joinMessage));
+        ws.onopen = function (event) {
+            ws.send(JSON.stringify({ type: 'JOIN', chatroomId: currentChatroomId }));
         };
 
-        ws.onmessage = function(event) {
+        ws.onmessage = function (event) {
             const message = JSON.parse(event.data);
 
             appendMessage(message);
             messageContainer.scrollTop = messageContainer.scrollHeight;
         };
+    }
 
-        ws.onerror = function(event) {
-            console.error("WebSocket 오류 발생:", event);
-        };
+    function loadMoreMessages() {
+        if (isLastPage || isLoading) return;
+        isLoading = true;
 
-        messageForm.style.display = 'flex';
+        const oldScrollHeight = messageContainer.scrollHeight;
+
+        fetch(`/chats/${currentChatroomId}/messages?page=${currentPage}&size=20`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.content && data.content.length > 0) {
+                    data.content.reverse();
+
+                    if (currentPage === 0) {
+                        data.content.forEach(message => {
+                            appendMessage(message, false);
+                        });
+                        messageContainer.scrollTop = messageContainer.scrollHeight;
+                    } else {
+                        data.content.forEach(message => {
+                            appendMessage(message, true);
+                        });
+                        messageContainer.scrollTop = messageContainer.scrollHeight - oldScrollHeight;
+                    }
+                }
+
+                isLastPage = data.last;
+                currentPage++;
+
+                setTimeout(() => {
+                    if (messageContainer.scrollHeight <= messageContainer.clientHeight && !isLastPage)
+                        loadMoreMessages();
+                }, 100);
+            })
+            .catch(error => console.error('Error:', error))
+            .finally(() => {
+                isLoading = false;
+            });
     }
 
     function sendMessage() {
-        const messageInput = document.getElementById('message-input');
-        const messageContent = messageInput.value;
+        const messageContent = messageInput.value.trim();
 
-        if (messageContent.trim() !== "" && ws && ws.readyState === WebSocket.OPEN) {
+        if (messageContent !== "" && ws && ws.readyState === WebSocket.OPEN) {
             const talkMessage = {
                 type: 'TALK',
                 chatroomId: currentChatroomId,
-                senderId: 1, // TODO: 실제 로그인한 사용자 ID로 변경 필요
+                senderId: 2, // TODO: 실제 로그인한 사용자 ID로 변경 필요
                 content: messageContent
             };
 
@@ -133,12 +157,15 @@
         }
     }
 
-    function appendMessage(message) {
-        const messageContainer = document.getElementById('message-container');
+    function appendMessage(message, prepend = false) {
         const messageElement = document.createElement('div');
 
         messageElement.textContent = `${message.senderNickname}: ${message.content}`;
-        messageContainer.appendChild(messageElement);
+
+        if (prepend)
+            messageContainer.prepend(messageElement);
+        else
+            messageContainer.appendChild(messageElement);
     }
 </script>
 </body>
