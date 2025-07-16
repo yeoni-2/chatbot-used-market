@@ -33,6 +33,8 @@
 </div>
 
 <script th:inline="javascript">
+    const loginUserId = /*[[${loginUserId}]]*/ null;
+
     let ws;
     let currentChatroomId = null;
     let currentPage = 0;
@@ -49,12 +51,19 @@
 
         messageForm.addEventListener('submit', function (event) {
             event.preventDefault();
-            sendMessage();
+
+            if (currentChatroomId === 'chatbot')
+                sendChatbotMessage();
+            else
+                sendRealtimeMessage();
         });
 
         messageContainer.addEventListener('scroll', function () {
             if (this.scrollTop < 1 && !isLoading && !isLastPage) {
-                loadMoreMessages();
+                if (currentChatroomId === 'chatbot')
+                    loadMoreChatbotMessages();
+                else
+                    loadMoreMessages();
             }
         });
     });
@@ -64,6 +73,17 @@
             .then(response => response.json())
             .then(data => {
                 chatroomListDiv.innerHTML = '';
+
+                const chatbotItem = document.createElement('div');
+
+                chatbotItem.className = 'chatroom-item';
+                chatbotItem.textContent = '🤖 챗봇 상담사';
+                chatbotItem.dataset.chatroomId = 'chatbot';
+                chatbotItem.addEventListener('click', () => {
+                    loadChatbotUI();
+                });
+                chatroomListDiv.appendChild(chatbotItem);
+
                 data.forEach(chatroom => {
                     const chatroomElement = document.createElement('div');
 
@@ -78,23 +98,96 @@
             });
     }
 
-    function loadMessages(chatroomId) {
-        currentChatroomId = chatroomId;
+    function loadChatbotUI() {
+        if (currentChatroomId === 'chatbot') return;
+
+        currentChatroomId = 'chatbot';
         currentPage = 0;
         isLastPage = false;
         messageContainer.innerHTML = '';
         messageForm.style.display = 'flex';
 
-        loadMoreMessages();
+        loadMoreChatbotMessages();
 
         if (ws) ws.close();
+    }
+
+    function loadMoreChatbotMessages() {
+        if (isLastPage || isLoading) return;
+        isLoading = true;
+
+        const oldScrollHeight = messageContainer.scrollHeight;
+
+        fetch(`/chatbot/messages?page=${currentPage}&size=20`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.content && data.content.length > 0) {
+                    if (currentPage === 0) {
+                        data.content.reverse();
+                        data.content.forEach(message => {
+                            appendMessage({ senderNickname: '나', content: message.userMessage }, false);
+                            appendMessage({ senderNickname: '챗봇', content: message.botResponse  }, false);
+                        });
+                        messageContainer.scrollTop = messageContainer.scrollHeight;
+                    } else {
+                        data.content.forEach(message => {
+                            appendMessage({ senderNickname: '챗봇', content: message.botResponse }, true);
+                            appendMessage({ senderNickname: '나', content: message.userMessage }, true);
+                        });
+                        messageContainer.scrollTop = messageContainer.scrollHeight - oldScrollHeight;
+                    }
+                } else if (currentPage === 0)
+                    appendMessage({ senderNickname: '챗봇', content: '안녕하세요! 무엇을 도와드릴까요?' });
+
+                isLastPage = data.last;
+                currentPage++;
+
+                setTimeout(() => {
+                    if (messageContainer.scrollHeight <= messageContainer.clientHeight && !isLastPage)
+                        loadMoreChatbotMessages();
+                }, 100);
+            })
+            .finally(() => { isLoading = false; });
+    }
+
+    function sendChatbotMessage() {
+        const userMessage = messageInput.value.trim();
+
+        if (userMessage === '') return;
+
+        appendMessage({ senderNickname: '나', content: userMessage });
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+        messageInput.value = '';
+
+        fetch('/chatbot/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userMessage: userMessage })
+        })
+        .then(response => response.json())
+        .then(data => {
+            appendMessage({ senderNickname: '챗봇', content: data.reply });
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+        });
+    }
+
+    function loadMessages(chatroomId) {
+        if (currentChatroomId === chatroomId) return;
+
+        currentChatroomId = chatroomId;
+        currentPage = 0;
+        isLastPage = false;
+        messageContainer.innerHTML = '';
+        messageForm.style.display = 'flex';
+        loadMoreMessages();
+        connectWebSocket();
+    }
+
+    function connectWebSocket() {
+        if (ws) ws.close();
         ws = new WebSocket("ws://localhost:8080/ws/chat");
-
-        ws.onopen = function (event) {
-            ws.send(JSON.stringify({ type: 'JOIN', chatroomId: currentChatroomId }));
-        };
-
-        ws.onmessage = function (event) {
+        ws.onopen = () => ws.send(JSON.stringify({ type: 'JOIN', chatroomId: currentChatroomId }));
+        ws.onmessage = (event) => {
             const message = JSON.parse(event.data);
 
             appendMessage(message);
@@ -112,9 +205,8 @@
             .then(response => response.json())
             .then(data => {
                 if (data.content && data.content.length > 0) {
-                    data.content.reverse();
-
                     if (currentPage === 0) {
+                        data.content.reverse();
                         data.content.forEach(message => {
                             appendMessage(message, false);
                         });
@@ -141,15 +233,15 @@
             });
     }
 
-    function sendMessage() {
+    function sendRealtimeMessage() {
         const messageContent = messageInput.value.trim();
 
         if (messageContent !== "" && ws && ws.readyState === WebSocket.OPEN) {
             const talkMessage = {
-                type: 'TALK',
-                chatroomId: currentChatroomId,
-                senderId: 2, // TODO: 실제 로그인한 사용자 ID로 변경 필요
-                content: messageContent
+            type: 'TALK',
+            chatroomId: currentChatroomId,
+            senderId: loginUserId,
+            content: messageContent
             };
 
             ws.send(JSON.stringify(talkMessage));
