@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>채팅</title>
+    <link rel="stylesheet" th:href="@{/css/header.css}">
     <link rel="stylesheet" th:href="@{/css/chat.css}">
 </head>
 <body>
+<div th:replace="~{header :: header}"></div>
 <div id="left-frame">
     <h1>내 채팅 목록</h1>
     <div id="chatroom-list"></div>
