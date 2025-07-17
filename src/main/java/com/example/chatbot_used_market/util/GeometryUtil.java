@@ -6,14 +6,10 @@ import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.PrecisionModel;
 
 public class GeometryUtil {
-  private static final GeometryFactory geometryFactory;
-
-  static {
-    geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
-  }
+  private static final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), 4326);
 
   public static Point getPoint(double latitude, double longitude){
-    return geometryFactory.createPoint(new Coordinate(latitude, longitude));
+    return geometryFactory.createPoint(new Coordinate(longitude, latitude));
   }
 
   // https://www.baeldung.com/java-find-distance-between-points
