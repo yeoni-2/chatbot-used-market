@@ -1,3 +1,9 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 .fixed-header {
   position: fixed;
   top: 0;
@@ -9,6 +15,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-sizing: border-box;
 }
 .mainBtn {
   display: inline-block;
