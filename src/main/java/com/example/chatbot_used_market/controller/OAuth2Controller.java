@@ -1,5 +1,6 @@
 package com.example.chatbot_used_market.controller;
 
+import com.example.chatbot_used_market.entity.AuthProvider;
 import com.example.chatbot_used_market.entity.User;
 import com.example.chatbot_used_market.service.UserService;
 import jakarta.servlet.http.HttpSession;
@@ -24,14 +25,30 @@ public class OAuth2Controller {
         String providerId = oauthUser.getAttribute("sub");
 
         User user = userService.findByEmail(email);
-        if (user == null) {
-            String nickname = userService.isNicknameDuplicate(name) ? null : name;
 
-            user = new User(email, nickname, null, providerId);
-            userService.saveUser(user);
+        // 동일한 이메일을 사용하는 다른 OAuth2 로그인 막기
+        if (user != null && (user.getProviderId() == null || !user.getProviderId().equals(providerId))) {
+            return "redirect:/login?error=email";
         }
 
-        session.setAttribute("user", user);
+        if (user == null) {
+            String nickname = null;
+
+            //닉네임 중복 검사
+            boolean isDuplicate = userService.isNicknameDuplicate(name);
+
+            //닉네임 유효성 검사
+            boolean isValid = userService.isValidNickname(name);
+
+            if (!isDuplicate && isValid) {
+                nickname = name;
+            } else {
+                nickname = null;
+            }
+
+            user = new User(email, nickname, null, providerId, AuthProvider.GOOGLE);
+            userService.saveUser(user);
+        }
 
         return "redirect:/trade";
     }

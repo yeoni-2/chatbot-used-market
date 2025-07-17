@@ -94,7 +94,11 @@
     <header th:fragment="header">
       <div class="fixed-header">
         <div class="header-left">
-          <a href="/trade" class="button-link">중고거래</a>
+        <a href="/main" class="mainBtn">
+            <img th:src="@{/images/logo.svg}" alt="로고">
+        </a>
+
+        <a href="/trade" class="tradeBtn">중고거래</a>
 
           <div class="search-container">
             <form th:action="@{/trades/search}" method="get" style="display: flex; align-items: center; gap: 10px">
@@ -114,32 +118,32 @@
           </div>
         </div>
 
-        <span style="float: right">
-          <th:block th:if="${session.loginUserId == null}">
-            <a href="/login" class="button-link">로그인</a>
-          </th:block>
+        <span style="float:right;">
+      <th:block th:if="${session.loginUserId == null}">
+        <form th:action="@{/login}" method="get" class="button-form">
+          <button type="submit" class="loginBtn">로그인</button>
+        </form>
+      </th:block>
 
-          <th:block th:if="${session.loginUserId != null}">
-            <form th:action="@{/logout}" method="post" class="button-form">
-              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-              <button type="submit">로그아웃</button>
-            </form>
-          </th:block>
-        </span>
-      </div>
-    </header>
-
+      <th:block th:if="${session.loginUserId != null}">
+        <form th:action="@{/logout}" method="post" class="button-form">
+          <button type="submit" class="loginBtn">로그아웃</button>
+        </form>
+      </th:block>
+    </span>
+    </div>
+</header>
     <script th:inline="javascript">
-      // 페이지 로드 시 선택된 카테고리 설정
-      document.addEventListener("DOMContentLoaded", function () {
-        const urlParams = new URLSearchParams(window.location.search);
-        const selectedCategory = urlParams.get("category");
-        const categorySelect = document.querySelector('select[name="category"]');
+        // 페이지 로드 시 선택된 카테고리 설정
+        document.addEventListener("DOMContentLoaded", function () {
+          const urlParams = new URLSearchParams(window.location.search);
+          const selectedCategory = urlParams.get("category");
+          const categorySelect = document.querySelector('select[name="category"]');
 
-        if (selectedCategory && categorySelect) {
-          categorySelect.value = selectedCategory;
-        }
-      });
+          if (selectedCategory && categorySelect) {
+            categorySelect.value = selectedCategory;
+          }
+        });
     </script>
   </body>
 </html>

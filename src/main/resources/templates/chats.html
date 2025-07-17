@@ -1,177 +1,264 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-  <head>
-    <meta charset="UTF-8" />
+<head>
+    <meta charset="UTF-8">
     <title>채팅</title>
     <style>
-      body {
-        display: flex;
-        font-family: sans-serif;
-      }
-      #left-frame {
-        width: 30%;
-        height: 95vh;
-        border-right: 1px solid #ccc;
-        padding: 10px;
-      }
-      #right-frame {
-        width: 70%;
-        height: 95vh;
-        padding: 10px;
-        display: flex;
-        flex-direction: column;
-      }
+        body { display: flex; font-family: sans-serif; }
+        #left-frame { width: 30%; height: 95vh; border-right: 1px solid #ccc; padding: 10px; }
+        #right-frame { width: 70%; height: 95vh; padding: 10px; display: flex; flex-direction: column;}
 
-      #chatroom-list {
-        flex-grow: 1;
-        overflow-y: auto;
-      }
-      .chatroom-item {
-        cursor: pointer;
-        padding: 10px;
-        border-bottom: 1px solid #eee;
-      }
-      .chatroom-item:hover {
-        background-color: #f0f0f0;
-      }
+        #chatroom-list { flex-grow: 1; overflow-y: auto; }
+        .chatroom-item { cursor: pointer; padding: 10px; border-bottom: 1px solid #eee; }
+        .chatroom-item:hover { background-color: #f0f0f0; }
 
-      #message-container {
-        flex-grow: 1;
-        border: 1px solid #ddd;
-        padding: 10px;
-        overflow-y: scroll;
-        margin-bottom: 10px;
-      }
-      #message-form {
-        display: flex;
-      }
-      #message-input {
-        flex-grow: 1;
-        padding: 5px;
-      }
+        #message-container { flex-grow: 1; border: 1px solid #ddd; padding: 10px; overflow-y: scroll; margin-bottom: 10px;}
+        #message-form { display: flex; }
+        #message-input { flex-grow: 1; padding: 5px; }
     </style>
-  </head>
-  <body>
-    <div id="left-frame">
-      <h1>내 채팅 목록</h1>
-      <div id="chatroom-list"></div>
-    </div>
-    <div id="right-frame">
-      <div id="message-container">
+</head>
+<body>
+<div id="left-frame">
+    <h1>내 채팅 목록</h1>
+    <div id="chatroom-list"></div>
+</div>
+<div id="right-frame">
+    <div id="message-container">
         <p>채팅방을 선택해주세요.</p>
-      </div>
-      <form id="message-form" style="display: none">
-        <input type="text" id="message-input" placeholder="메시지를 입력하세요..." />
-        <button type="submit">전송</button>
-      </form>
     </div>
+    <form id="message-form" style="display: none;">
+        <input type="text" id="message-input" placeholder="메시지를 입력하세요...">
+        <button type="submit">전송</button>
+    </form>
+</div>
 
-    <script th:inline="javascript">
-      let ws;
-      let currentChatroomId = null;
+<script th:inline="javascript">
+    const loginUserId = /*[[${loginUserId}]]*/ null;
 
-      document.addEventListener("DOMContentLoaded", function () {
+    let ws;
+    let currentChatroomId = null;
+    let currentPage = 0;
+    let isLastPage = false;
+    let isLoading = false;
+
+    const chatroomListDiv = document.getElementById('chatroom-list');
+    const messageContainer = document.getElementById('message-container');
+    const messageForm = document.getElementById('message-form');
+    const messageInput = document.getElementById('message-input');
+
+    document.addEventListener('DOMContentLoaded', function () {
         loadChatrooms();
 
-        const messageForm = document.getElementById("message-form");
+        messageForm.addEventListener('submit', function (event) {
+            event.preventDefault();
 
-        messageForm.addEventListener("submit", function (event) {
-          event.preventDefault();
-          sendMessage();
+            if (currentChatroomId === 'chatbot')
+                sendChatbotMessage();
+            else
+                sendRealtimeMessage();
         });
-      });
 
-      function loadChatrooms() {
-        fetch("/chats")
-          .then((response) => response.json())
-          .then((data) => {
-            const chatroomListDiv = document.getElementById("chatroom-list");
+        messageContainer.addEventListener('scroll', function () {
+            if (this.scrollTop < 1 && !isLoading && !isLastPage) {
+                if (currentChatroomId === 'chatbot')
+                    loadMoreChatbotMessages();
+                else
+                    loadMoreMessages();
+            }
+        });
+    });
 
-            chatroomListDiv.innerHTML = "";
-            data.forEach((chatroom) => {
-              const chatroomElement = document.createElement("div");
+    function loadChatrooms() {
+        fetch('/chats')
+            .then(response => response.json())
+            .then(data => {
+                chatroomListDiv.innerHTML = '';
 
-              chatroomElement.className = "chatroom-item";
-              chatroomElement.textContent = chatroom.opponentNickname + "님과의 대화";
-              chatroomElement.dataset.chatroomId = chatroom.chatroomId;
-              chatroomElement.addEventListener("click", () => {
-                document.getElementById("message-container").innerHTML = "";
-                loadMessages(chatroom.chatroomId);
-              });
-              chatroomListDiv.appendChild(chatroomElement);
+                const chatbotItem = document.createElement('div');
+
+                chatbotItem.className = 'chatroom-item';
+                chatbotItem.textContent = '🤖 챗봇 상담사';
+                chatbotItem.dataset.chatroomId = 'chatbot';
+                chatbotItem.addEventListener('click', () => {
+                    loadChatbotUI();
+                });
+                chatroomListDiv.appendChild(chatbotItem);
+
+                data.forEach(chatroom => {
+                    const chatroomElement = document.createElement('div');
+
+                    chatroomElement.className = 'chatroom-item';
+                    chatroomElement.textContent = chatroom.opponentNickname + '님과의 대화';
+                    chatroomElement.dataset.chatroomId = chatroom.chatroomId;
+                    chatroomElement.addEventListener('click', () => {
+                        loadMessages(chatroom.chatroomId);
+                    });
+                    chatroomListDiv.appendChild(chatroomElement);
+                });
             });
-          });
-      }
+    }
 
-      function loadMessages(chatroomId) {
-        currentChatroomId = chatroomId;
+    function loadChatbotUI() {
+        if (currentChatroomId === 'chatbot') return;
 
-        const messageContainer = document.getElementById("message-container");
-        const messageForm = document.getElementById("message-form");
+        currentChatroomId = 'chatbot';
+        currentPage = 0;
+        isLastPage = false;
+        messageContainer.innerHTML = '';
+        messageForm.style.display = 'flex';
 
-        fetch(`/chats/${chatroomId}/messages`)
-          .then((response) => response.json())
-          .then((data) => {
-            messageContainer.innerHTML = "";
-            data.forEach((message) => {
-              appendMessage(message);
-            });
-            messageContainer.scrollTop = messageContainer.scrollHeight;
-          });
+        loadMoreChatbotMessages();
 
         if (ws) ws.close();
+    }
 
+    function loadMoreChatbotMessages() {
+        if (isLastPage || isLoading) return;
+        isLoading = true;
+
+        const oldScrollHeight = messageContainer.scrollHeight;
+
+        fetch(`/chatbot/messages?page=${currentPage}&size=20`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.content && data.content.length > 0) {
+                    if (currentPage === 0) {
+                        data.content.reverse();
+                        data.content.forEach(message => {
+                            appendMessage({ senderNickname: '나', content: message.userMessage }, false);
+                            appendMessage({ senderNickname: '챗봇', content: message.botResponse  }, false);
+                        });
+                        messageContainer.scrollTop = messageContainer.scrollHeight;
+                    } else {
+                        data.content.forEach(message => {
+                            appendMessage({ senderNickname: '챗봇', content: message.botResponse }, true);
+                            appendMessage({ senderNickname: '나', content: message.userMessage }, true);
+                        });
+                        messageContainer.scrollTop = messageContainer.scrollHeight - oldScrollHeight;
+                    }
+                } else if (currentPage === 0)
+                    appendMessage({ senderNickname: '챗봇', content: '안녕하세요! 무엇을 도와드릴까요?' });
+
+                isLastPage = data.last;
+                currentPage++;
+
+                setTimeout(() => {
+                    if (messageContainer.scrollHeight <= messageContainer.clientHeight && !isLastPage)
+                        loadMoreChatbotMessages();
+                }, 100);
+            })
+            .finally(() => { isLoading = false; });
+    }
+
+    function sendChatbotMessage() {
+        const userMessage = messageInput.value.trim();
+
+        if (userMessage === '') return;
+
+        appendMessage({ senderNickname: '나', content: userMessage });
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+        messageInput.value = '';
+
+        fetch('/chatbot/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userMessage: userMessage })
+        })
+        .then(response => response.json())
+        .then(data => {
+            appendMessage({ senderNickname: '챗봇', content: data.reply });
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+        });
+    }
+
+    function loadMessages(chatroomId) {
+        if (currentChatroomId === chatroomId) return;
+
+        currentChatroomId = chatroomId;
+        currentPage = 0;
+        isLastPage = false;
+        messageContainer.innerHTML = '';
+        messageForm.style.display = 'flex';
+        loadMoreMessages();
+        connectWebSocket();
+    }
+
+    function connectWebSocket() {
+        if (ws) ws.close();
         ws = new WebSocket("ws://localhost:8080/ws/chat");
+        ws.onopen = () => ws.send(JSON.stringify({ type: 'JOIN', chatroomId: currentChatroomId }));
+        ws.onmessage = (event) => {
+            const message = JSON.parse(event.data);
 
-        ws.onopen = function (event) {
-          console.log("WebSocket 연결 성공");
+            appendMessage(message);
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+        };
+    }
 
-          const joinMessage = {
-            type: "JOIN",
+    function loadMoreMessages() {
+        if (isLastPage || isLoading) return;
+        isLoading = true;
+
+        const oldScrollHeight = messageContainer.scrollHeight;
+
+        fetch(`/chats/${currentChatroomId}/messages?page=${currentPage}&size=20`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.content && data.content.length > 0) {
+                    if (currentPage === 0) {
+                        data.content.reverse();
+                        data.content.forEach(message => {
+                            appendMessage(message, false);
+                        });
+                        messageContainer.scrollTop = messageContainer.scrollHeight;
+                    } else {
+                        data.content.forEach(message => {
+                            appendMessage(message, true);
+                        });
+                        messageContainer.scrollTop = messageContainer.scrollHeight - oldScrollHeight;
+                    }
+                }
+
+                isLastPage = data.last;
+                currentPage++;
+
+                setTimeout(() => {
+                    if (messageContainer.scrollHeight <= messageContainer.clientHeight && !isLastPage)
+                        loadMoreMessages();
+                }, 100);
+            })
+            .catch(error => console.error('Error:', error))
+            .finally(() => {
+                isLoading = false;
+            });
+    }
+
+    function sendRealtimeMessage() {
+        const messageContent = messageInput.value.trim();
+
+        if (messageContent !== "" && ws && ws.readyState === WebSocket.OPEN) {
+            const talkMessage = {
+            type: 'TALK',
             chatroomId: currentChatroomId,
-          };
+            senderId: loginUserId,
+            content: messageContent
+            };
 
-          ws.send(JSON.stringify(joinMessage));
-        };
-
-        ws.onmessage = function (event) {
-          const message = JSON.parse(event.data);
-
-          appendMessage(message);
-          messageContainer.scrollTop = messageContainer.scrollHeight;
-        };
-
-        ws.onerror = function (event) {
-          console.error("WebSocket 오류 발생:", event);
-        };
-
-        messageForm.style.display = "flex";
-      }
-
-      function sendMessage() {
-        const messageInput = document.getElementById("message-input");
-        const messageContent = messageInput.value;
-
-        if (messageContent.trim() !== "" && ws && ws.readyState === WebSocket.OPEN) {
-          const talkMessage = {
-            type: "TALK",
-            chatroomId: currentChatroomId,
-            senderId: /*[[${session.loginUserId}]]*/ 1, // 실제 로그인한 사용자 ID
-            content: messageContent,
-          };
-
-          ws.send(JSON.stringify(talkMessage));
-          messageInput.value = "";
+            ws.send(JSON.stringify(talkMessage));
+            messageInput.value = '';
         }
-      }
+    }
 
-      function appendMessage(message) {
-        const messageContainer = document.getElementById("message-container");
-        const messageElement = document.createElement("div");
+    function appendMessage(message, prepend = false) {
+        const messageElement = document.createElement('div');
 
         messageElement.textContent = `${message.senderNickname}: ${message.content}`;
-        messageContainer.appendChild(messageElement);
-      }
-    </script>
-  </body>
+
+        if (prepend)
+            messageContainer.prepend(messageElement);
+        else
+            messageContainer.appendChild(messageElement);
+    }
+</script>
+</body>
 </html>
