@@ -16,7 +16,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/main", "/signup", "/login", "/trade", "/css/**", "/js/**", "/images/**", "/check/**").permitAll()
+                        .requestMatchers("/", "/main", "/signup", "/login", "/css/**", "/trade", "/js/**", "/images/**", "/check/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
@@ -33,9 +33,7 @@ public class SecurityConfig {
                         .loginPage("/login")
                         .defaultSuccessUrl("/oauth2/success", true)
                 )
-                .logout(logout -> logout
-                        .logoutSuccessUrl("/main")
-                );
+                .csrf(csrf -> csrf.disable());
 
         return http.build();
     }

@@ -28,7 +28,6 @@ public class ChatController {
     public ResponseEntity<ChatroomDto.Response> createOrGetChatroom(@RequestBody ChatroomDto.Request request, HttpSession session) {
         Long currentUserId = (Long) session.getAttribute("loginUserId");
         Chatroom chatroom = chatService.createOrGetChatroom(request.getTradeId(), currentUserId);
-
         ChatroomDto.Response response = new ChatroomDto.Response(chatroom.getId());
 
         return ResponseEntity.ok(response);
@@ -45,11 +44,14 @@ public class ChatController {
     // 메인 채팅 페이지
     @GetMapping("/page")    // URL: GET /chats/page
     public String chatPage(Model model, HttpSession session) {
-        // 로그인 확인
         Long loginUserId = (Long) session.getAttribute("loginUserId");
+
         if (loginUserId == null) {
             return "redirect:/login"; // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
         }
+
+        model.addAttribute("loginUserId", loginUserId);
+
         return "chats";
     }
 

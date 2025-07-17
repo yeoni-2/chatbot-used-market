@@ -22,6 +22,10 @@ public class User {
     @Column(name = "provider_id", length = 100)
     private String providerId;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "provider")
+    private AuthProvider authProvider = AuthProvider.LOCAL;
+
     @Column(name = "username", unique = true, length = 50)
     private String username;
 
@@ -33,6 +37,9 @@ public class User {
 
     @Column(name = "email", unique = true, length = 100)
     private String email;
+
+    @Column(name = "profile_img_url", length = 100)
+    private String profileImgUrl;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -58,12 +65,14 @@ public class User {
         this.username = username;
         this.nickname = nickname;
         this.password = password;
+        this.authProvider = AuthProvider.LOCAL;
     }
 
-    public User(String email, String nickname, String password, String providerId) {
+    public User(String email, String nickname, String password, String providerId, AuthProvider authProvider) {
         this.email = email;
         this.nickname = nickname;
         this.password = password;
         this.providerId = providerId;
+        this.authProvider = authProvider;
     }
 }
