@@ -2,6 +2,7 @@ package com.example.chatbot_used_market.repository;
 
 import com.example.chatbot_used_market.entity.User;
 import jakarta.transaction.Transactional;
+import org.locationtech.jts.geom.Point;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -19,6 +20,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Modifying
     @Transactional
-    @Query(value = "UPDATE users SET position=ST_GeomFromText(:point, 4326) WHERE id=:id", nativeQuery = true)
-    void updatePositionById(@Param("id") Long id, @Param("point") String point);
+    @Query(value = "UPDATE users SET position=:position, location=:location WHERE id=:id", nativeQuery = true)
+    void updatePositionAndLocationById(@Param("id") Long id, @Param("position") Point position, @Param("location") String location);
 }

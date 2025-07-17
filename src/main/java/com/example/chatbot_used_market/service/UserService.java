@@ -1,6 +1,7 @@
 package com.example.chatbot_used_market.service;
 
 import com.example.chatbot_used_market.entity.User;
+import org.locationtech.jts.geom.Point;
 import reactor.core.publisher.Mono;
 
 public interface UserService {
@@ -15,5 +16,5 @@ public interface UserService {
   User findByUsername(String username);
   User findByEmail(String email);
   Mono<String> googleGeocodingByLocation(String location);
-  void updatePositionById(Long id, double latitude, double longitude);
+  void updatePositionAndLocationById(Long id, Point point, String location);
 }

@@ -10,14 +10,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import reactor.core.publisher.Mono;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @Controller
 public class UserController {
@@ -127,14 +124,15 @@ public class UserController {
 
     @PostMapping("/users/{id}/locations")
     public String authUserLocation(@Valid @RequestBody UserLocationDto userLocationDto,
-                                   HttpSession session,
-                                   @AuthenticationPrincipal OAuth2User oAuth2User){
-//        User user = AuthService.getCurrentUser(session, oAuth2User);
-//    if (AuthService.getCurrentUser(session, oAuth2User) == null) return "login";
-        // for test
-        User user = userService.findById(2L);
+                                   @PathVariable("id") Long targetUserId,
+                                   HttpSession session){
         try {
             Mono<String> positionByLocationMono = userService.googleGeocodingByLocation(userLocationDto.getLocation());
+            Long userId = (Long)session.getAttribute("loginUserId");
+
+            if (userId == null || !targetUserId.equals(userId)){
+                return "error";
+            }
 
             positionByLocationMono.subscribe(
                     result -> {
@@ -151,9 +149,13 @@ public class UserController {
                                     userLocationDto.getLatitude(),
                                     userLocationDto.getLongitude(),
                                     latitude, longitude, 2)){
-                                user.setLocation(userLocationDto.getDongName());
-                                userService.saveUser(user);
-                                userService.updatePositionById(user.getId(), latitude, longitude);
+                                // 아래의 주석 코드도 위치 정보 변경은 동작하나, userServiceImpl.saveUser가 password!=null이면 password를 한 번 암호화해 저장하므로 update의 경우 암호화된 password가 또 암호화되어 저장되는 현상 발생
+//                                User user = userService.findById(userId);
+//                                user.setLocation(userLocationDto.getDongName());
+//                                user.setPosition(GeometryUtil.getPoint(latitude, longitude));
+//                                userService.saveUser(user);
+
+                                userService.updatePositionAndLocationById(userId, GeometryUtil.getPoint(latitude, longitude), userLocationDto.getDongName());
                             }
                         } catch (JsonProcessingException e) {
                             throw new RuntimeException(e);
