@@ -34,8 +34,6 @@ public class Trade {
     @Column(nullable = false)
     private Integer price;
 
-//    private String tradeImgUrl;
-
     @Column(nullable = false)
     private String category;
 
