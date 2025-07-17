@@ -34,6 +34,8 @@ public class Review {
   private Integer rating;
 
   private String content;
+
+  @Column(name = "created_at")
   private LocalDateTime createdAt;
 
   public Review(){}
