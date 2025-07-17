@@ -16,7 +16,6 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/main", "/signup", "/login", "/css/**", "/trade", "/js/**", "/images/**", "/check/**").permitAll()
                         .anyRequest().authenticated()
@@ -34,7 +33,8 @@ public class SecurityConfig {
                 .oauth2Login(oauth -> oauth
                         .loginPage("/login")
                         .defaultSuccessUrl("/oauth2/success", true)
-                );
+                )
+                .csrf(csrf -> csrf.disable());
 
         return http.build();
     }
