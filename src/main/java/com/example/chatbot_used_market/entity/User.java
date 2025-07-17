@@ -50,9 +50,6 @@ public class User {
     @OneToMany(mappedBy = "buyer", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Trade> buyingTrades = new ArrayList<>();
 
-    @Enumerated(EnumType.STRING)
-    private AuthProvider provider;
-
     private String location;
 
     @Column(columnDefinition = "Geometry(Point, 4326)")

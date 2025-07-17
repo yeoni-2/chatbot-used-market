@@ -5,7 +5,6 @@ import com.example.chatbot_used_market.dto.UserSignupDto;
 import com.example.chatbot_used_market.entity.User;
 import com.example.chatbot_used_market.service.UserService;
 import com.example.chatbot_used_market.util.GeometryUtil;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
@@ -118,55 +117,61 @@ public class UserController {
     }
 
     @GetMapping("/users/{id}/locations")
-    public String userLocation(){
+    public String userLocation(@PathVariable("id") Long targetUserId, HttpSession session, Model model){
+        Long userId = (Long)session.getAttribute("loginUserId");
+
+        if (targetUserId == null || !targetUserId.equals(userId)){
+            return "redirect:/users/"+userId+"/locations";
+        }
+
+        model.addAttribute("loginUserId", userId);
+
         return "location";
     }
 
     @PostMapping("/users/{id}/locations")
-    public String authUserLocation(@Valid @RequestBody UserLocationDto userLocationDto,
-                                   @PathVariable("id") Long targetUserId,
-                                   HttpSession session){
-        try {
-            Mono<String> positionByLocationMono = userService.googleGeocodingByLocation(userLocationDto.getLocation());
-            Long userId = (Long)session.getAttribute("loginUserId");
+    public Mono<String> authUserLocation(@Valid UserLocationDto userLocationDto,
+                                   @PathVariable(name = "id") Long targetUserId,
+                                   HttpSession session,
+                                   Model model) {
+        Long userId = (Long)session.getAttribute("loginUserId");
 
-            if (userId == null || !targetUserId.equals(userId)){
-                return "error";
-            }
-
-            positionByLocationMono.subscribe(
-                    result -> {
-                        try {
-                            ObjectMapper objectMapper = new ObjectMapper();
-                            JsonNode locationNode = objectMapper.readTree(result)
-                                    .get("results").get(0)
-                                    .get("geometry").get("location");
-                            double latitude = locationNode.get("lat").asDouble();
-                            double longitude = locationNode.get("lng").asDouble();
-
-                            // distance <= 2km
-                            if (GeometryUtil.isInDistance(
-                                    userLocationDto.getLatitude(),
-                                    userLocationDto.getLongitude(),
-                                    latitude, longitude, 2)){
-                                // 아래의 주석 코드도 위치 정보 변경은 동작하나, userServiceImpl.saveUser가 password!=null이면 password를 한 번 암호화해 저장하므로 update의 경우 암호화된 password가 또 암호화되어 저장되는 현상 발생
-//                                User user = userService.findById(userId);
-//                                user.setLocation(userLocationDto.getDongName());
-//                                user.setPosition(GeometryUtil.getPoint(latitude, longitude));
-//                                userService.saveUser(user);
-
-                                userService.updatePositionAndLocationById(userId, GeometryUtil.getPoint(latitude, longitude), userLocationDto.getDongName());
-                            }
-                        } catch (JsonProcessingException e) {
-                            throw new RuntimeException(e);
-                        }
-                    },
-                    error -> System.out.println("error: " + error)
-            );
-        } catch (Exception e) {
-            return "error";
+        if (userId == null){
+            return Mono.just("redirect:/login");
         }
 
-        return "login";
+        if (targetUserId == null || !targetUserId.equals(userId)) {
+            return Mono.just("redirect:/users/"+userId+"/locations");
+        }
+
+        return userService
+            .googleGeocodingByLocation(userLocationDto.getLocation())
+            .flatMap(result -> {
+                try {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    JsonNode locationNode = objectMapper.readTree(result)
+                            .get("results").get(0)
+                            .get("geometry").get("location");
+                    double latitude = locationNode.get("lat").asDouble();
+                    double longitude = locationNode.get("lng").asDouble();
+
+                    // distance <= 2km
+                    if (GeometryUtil.isInDistance(
+                            userLocationDto.getLatitude(),
+                            userLocationDto.getLongitude(),
+                            latitude, longitude, 2)) {
+                        userService.updatePositionAndLocationById(userId, GeometryUtil.getPoint(latitude, longitude), userLocationDto.getDongName());
+
+                        return Mono.just("redirect:/main");
+                    } else {
+                        model.addAttribute("error", "현재 위치와 입력하신 주소 간의 거리가 너무 멉니다.");
+                        model.addAttribute("loginUserId", userId);
+
+                        return Mono.just("location");
+                    }
+                } catch (Exception e) {
+                    return Mono.just("error");
+                }
+            });
     }
 }
