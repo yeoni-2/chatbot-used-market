@@ -20,6 +20,6 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new LoginUserInterceptor(userService))
-                .addPathPatterns("/trade", "/trades/**", "/mypage/**"); // 로그인 후 접근 가능한 경로만 지정
+                .addPathPatterns(); // 로그인 후 접근 가능한 경로만 지정
     }
 }
