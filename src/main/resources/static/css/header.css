@@ -1,0 +1,38 @@
+.fixed-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: #f0f0f0;
+  padding: 10px 40px;
+  z-index: 1000;
+}
+.mainBtn {
+display: inline-block;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.tradeBtn {
+display: inline-block;
+  padding: 6px 12px;
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.loginBtn {
+  display: inline-block;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 16px;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button-form {
+  display: inline;
+}
