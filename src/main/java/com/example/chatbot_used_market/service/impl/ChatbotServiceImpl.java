@@ -1,6 +1,7 @@
 package com.example.chatbot_used_market.service.impl;
 
 
+import com.example.chatbot_used_market.dto.ChatbotMessageDto;
 import com.example.chatbot_used_market.entity.ChatbotMessage;
 import com.example.chatbot_used_market.entity.User;
 import com.example.chatbot_used_market.repository.ChatbotMessageRepository;
@@ -11,6 +12,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,5 +69,11 @@ public class ChatbotServiceImpl implements ChatbotService {
         chatbotMessageRepository.save(chatbotMessage);
 
         return botReplyText;
+    }
+
+    @Override
+    public Slice<ChatbotMessageDto> getChatbotMessages(Long userId, Pageable pageable) {
+        Slice<ChatbotMessage> messages = chatbotMessageRepository.findByUser_IdOrderByCreatedAtDesc(userId, pageable);
+        return messages.map(ChatbotMessageDto::new);
     }
 }
