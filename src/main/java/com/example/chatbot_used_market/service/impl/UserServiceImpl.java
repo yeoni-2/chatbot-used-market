@@ -1,22 +1,26 @@
 package com.example.chatbot_used_market.service.impl;
 
+import com.example.chatbot_used_market.config.WebClientConfig;
 import com.example.chatbot_used_market.entity.User;
 import com.example.chatbot_used_market.repository.UserRepository;
 import com.example.chatbot_used_market.service.UserService;
+import org.locationtech.jts.geom.Point;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.util.regex.Pattern;
 
 @Service
 public class UserServiceImpl implements UserService {
-
     private final UserRepository userRepository;
+    private final WebClientConfig webClientConfig;
     private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, WebClientConfig webClientConfig) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.webClientConfig = webClientConfig;
     }
 
     @Override
@@ -66,6 +70,25 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findByUsername(String username) {
         return userRepository.findByUsername(username).orElse(null);
+    }
+
+    @Override
+    public Mono<String> googleGeocodingByLocation(String location){
+        return webClientConfig
+                .googleGeocodingClient()
+                .get()
+                .uri(uriBuilder -> uriBuilder
+                        .queryParam("key", "{apiKey}")
+                        .queryParam("address", String.join(",", location.split(" ")))
+                        .build()
+                )
+                .retrieve()
+                .bodyToMono(String.class);
+    }
+
+    @Override
+    public void updatePositionAndLocationById(Long id, Point point, String location) {
+        userRepository.updatePositionAndLocationById(id, point, location);
     }
 
     @Override

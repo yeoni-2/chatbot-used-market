@@ -34,8 +34,14 @@ build/
 
 ### postgresql ###
 application-postgresql.properties
+
+### google API ###
+application-google-oauth2.properties
+application-google-geocoding.properties
+
 api.txt
 db.sql
+data.sql
 ERD.png
 feature.txt
 trade-post.png

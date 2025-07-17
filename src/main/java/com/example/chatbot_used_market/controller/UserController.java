@@ -1,12 +1,19 @@
 package com.example.chatbot_used_market.controller;
 
+import com.example.chatbot_used_market.dto.UserLocationDto;
 import com.example.chatbot_used_market.dto.UserSignupDto;
 import com.example.chatbot_used_market.entity.User;
 import com.example.chatbot_used_market.service.UserService;
+import com.example.chatbot_used_market.util.GeometryUtil;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.Valid;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import jakarta.servlet.http.HttpSession;
+import reactor.core.publisher.Mono;
 
 @Controller
 public class UserController {
@@ -107,5 +114,64 @@ public class UserController {
     @GetMapping("/main")
     public String mainPage() {
         return "main";
+    }
+
+    @GetMapping("/users/{id}/locations")
+    public String userLocation(@PathVariable("id") Long targetUserId, HttpSession session, Model model){
+        Long userId = (Long)session.getAttribute("loginUserId");
+
+        if (targetUserId == null || !targetUserId.equals(userId)){
+            return "redirect:/users/"+userId+"/locations";
+        }
+
+        model.addAttribute("loginUserId", userId);
+
+        return "location";
+    }
+
+    @PostMapping("/users/{id}/locations")
+    public Mono<String> authUserLocation(@Valid UserLocationDto userLocationDto,
+                                   @PathVariable(name = "id") Long targetUserId,
+                                   HttpSession session,
+                                   Model model) {
+        Long userId = (Long)session.getAttribute("loginUserId");
+
+        if (userId == null){
+            return Mono.just("redirect:/login");
+        }
+
+        if (targetUserId == null || !targetUserId.equals(userId)) {
+            return Mono.just("redirect:/users/"+userId+"/locations");
+        }
+
+        return userService
+            .googleGeocodingByLocation(userLocationDto.getLocation())
+            .flatMap(result -> {
+                try {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    JsonNode locationNode = objectMapper.readTree(result)
+                            .get("results").get(0)
+                            .get("geometry").get("location");
+                    double latitude = locationNode.get("lat").asDouble();
+                    double longitude = locationNode.get("lng").asDouble();
+
+                    // distance <= 2km
+                    if (GeometryUtil.isInDistance(
+                            userLocationDto.getLatitude(),
+                            userLocationDto.getLongitude(),
+                            latitude, longitude, 2)) {
+                        userService.updatePositionAndLocationById(userId, GeometryUtil.getPoint(latitude, longitude), userLocationDto.getDongName());
+
+                        return Mono.just("redirect:/main");
+                    } else {
+                        model.addAttribute("error", "현재 위치와 입력하신 주소 간의 거리가 너무 멉니다.");
+                        model.addAttribute("loginUserId", userId);
+
+                        return Mono.just("location");
+                    }
+                } catch (Exception e) {
+                    return Mono.just("error");
+                }
+            });
     }
 }

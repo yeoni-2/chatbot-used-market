@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
+import org.locationtech.jts.geom.Point;
 
 @Getter
 @Setter
@@ -48,6 +49,11 @@ public class User {
 
     @OneToMany(mappedBy = "buyer", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Trade> buyingTrades = new ArrayList<>();
+
+    private String location;
+
+    @Column(columnDefinition = "Geometry(Point, 4326)")
+    private Point position;
 
     public User() {
     }
