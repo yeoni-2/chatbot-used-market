@@ -33,7 +33,7 @@ build/
 .vscode/
 
 ### postgresql ###
-application-postgresql.properties
+src/main/resources/application-postgresql.properties
 api.txt
 db.sql
 ERD.png
