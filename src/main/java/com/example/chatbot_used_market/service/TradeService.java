@@ -15,4 +15,5 @@ public interface TradeService {
     void deleteTrade(Long id);
     void incrementViewCount(Long id);
     Trade findById(Long id);
+    boolean existsById(Long id);
 }
