@@ -3,19 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>채팅</title>
-    <style>
-        body { display: flex; font-family: sans-serif; }
-        #left-frame { width: 30%; height: 95vh; border-right: 1px solid #ccc; padding: 10px; }
-        #right-frame { width: 70%; height: 95vh; padding: 10px; display: flex; flex-direction: column;}
-
-        #chatroom-list { flex-grow: 1; overflow-y: auto; }
-        .chatroom-item { cursor: pointer; padding: 10px; border-bottom: 1px solid #eee; }
-        .chatroom-item:hover { background-color: #f0f0f0; }
-
-        #message-container { flex-grow: 1; border: 1px solid #ddd; padding: 10px; overflow-y: scroll; margin-bottom: 10px;}
-        #message-form { display: flex; }
-        #message-input { flex-grow: 1; padding: 5px; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/chat.css}">
 </head>
 <body>
 <div id="left-frame">
@@ -68,31 +56,49 @@
         });
     });
 
+    // TODO: 프로필 이미지와 마지막 메시지, 시간 등은 지금은 임시 값으로 넣었고, 나중에 실제 데이터로 교체해야 합니다.
     function loadChatrooms() {
         fetch('/chats')
             .then(response => response.json())
             .then(data => {
-                chatroomListDiv.innerHTML = '';
-
+                const chatroomListDiv = document.getElementById('chatroom-list');
                 const chatbotItem = document.createElement('div');
 
+                chatroomListDiv.innerHTML = '';
                 chatbotItem.className = 'chatroom-item';
-                chatbotItem.textContent = '🤖 챗봇 상담사';
+                chatbotItem.innerHTML = `
+                    <div class="profile-pic-container">
+                        <span class="chatbot-icon">🤖</span>
+                    </div>
+                    <div class="chatroom-info">
+                        <div class="info-header">
+                            <span class="nickname">챗봇 상담사</span>
+                        </div>
+                        <div class="last-message">궁금한 점을 물어보세요!</div>
+                    </div>
+                `;
                 chatbotItem.dataset.chatroomId = 'chatbot';
-                chatbotItem.addEventListener('click', () => {
-                    loadChatbotUI();
-                });
+                chatbotItem.addEventListener('click', () => loadChatbotUI());
                 chatroomListDiv.appendChild(chatbotItem);
 
                 data.forEach(chatroom => {
                     const chatroomElement = document.createElement('div');
 
                     chatroomElement.className = 'chatroom-item';
-                    chatroomElement.textContent = chatroom.opponentNickname + '님과의 대화';
+                    chatroomElement.innerHTML = `
+                        <div class="profile-pic-container">
+                            <img src="/images/default-profile.png" alt="profile" class="profile-pic">
+                        </div>
+                        <div class="chatroom-info">
+                            <div class="info-header">
+                                <span class="nickname">${chatroom.opponentNickname}</span>
+                                <span class="time">방금 전</span>
+                            </div>
+                            <div class="last-message">마지막 메시지...</div>
+                        </div>
+                    `;
                     chatroomElement.dataset.chatroomId = chatroom.chatroomId;
-                    chatroomElement.addEventListener('click', () => {
-                        loadMessages(chatroom.chatroomId);
-                    });
+                    chatroomElement.addEventListener('click', () => loadMessages(chatroom.chatroomId));
                     chatroomListDiv.appendChild(chatroomElement);
                 });
             });
@@ -250,14 +256,22 @@
     }
 
     function appendMessage(message, prepend = false) {
-        const messageElement = document.createElement('div');
+        const messageRow = document.createElement('div');
+        const messageBubble = document.createElement('div');
 
-        messageElement.textContent = `${message.senderNickname}: ${message.content}`;
+        messageRow.className = 'message-row';
+        if (loginUserId === message.senderId || message.senderNickname === '나')
+            messageRow.classList.add('my-message-row');
+        else
+            messageRow.classList.add('opponent-message-row');
+        messageBubble.className = 'message-bubble';
+        messageBubble.textContent = message.content;
+        messageRow.appendChild(messageBubble);
 
         if (prepend)
-            messageContainer.prepend(messageElement);
+            messageContainer.prepend(messageRow);
         else
-            messageContainer.appendChild(messageElement);
+            messageContainer.appendChild(messageRow);
     }
 </script>
 </body>
