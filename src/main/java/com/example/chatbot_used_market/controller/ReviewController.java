@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
@@ -27,8 +28,16 @@ public class ReviewController {
   }
 
   @GetMapping
-  public String reviewForm(){
-    return "reviewForm.temp";
+  public String reviewForm(@RequestParam("trade_id") Long tradeId, Model model){
+    Trade trade = tradeService.findById(tradeId);
+
+    if (trade == null){
+      return "error";
+    }
+
+    model.addAttribute("trade", trade);
+
+    return "reviewForm";
   }
 
   @PostMapping
