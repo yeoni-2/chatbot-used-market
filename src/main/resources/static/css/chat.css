@@ -1,8 +1,13 @@
 body {
     font-family: sans-serif;
     margin: 0;
+}
+
+.chat-container {
     display: flex;
-    height: 100vh;
+    width: 100%;
+    margin-top: 55px;
+    height: calc(100vh - 55px);
 }
 
 #left-frame {
@@ -12,6 +17,7 @@ body {
     display: flex;
     flex-direction: column;
     background-color: #ffffff;
+    height: 100%;
 }
 
 #left-frame h1 {
@@ -62,6 +68,7 @@ body {
     display: flex;
     flex-direction: column;
     background-color: #f8f9fa;
+    height: 100%;
 }
 
 .chatbot-icon {

@@ -8,23 +8,26 @@
 </head>
 <body>
 <div th:replace="~{header :: header}"></div>
-<div id="left-frame">
-    <h1>내 채팅 목록</h1>
-    <div id="chatroom-list"></div>
-</div>
-<div id="right-frame">
-    <div id="message-container">
-        <p>채팅방을 선택해주세요.</p>
+<div class="chat-container">
+    <div id="left-frame">
+        <h1>내 채팅 목록</h1>
+        <div id="chatroom-list"></div>
     </div>
-    <form id="message-form" style="display: none;">
-        <input type="text" id="message-input" placeholder="메시지를 입력하세요...">
-        <button type="submit">전송</button>
-    </form>
+    <div id="right-frame">
+        <div id="message-container">
+            <div id="scroll-trigger" style="height: 1px;"></div>
+            <div id="message-list">
+                <p>채팅방을 선택해주세요.</p>
+            </div>
+        </div>
+        <form id="message-form" style="display: none;">
+            <input type="text" id="message-input" placeholder="메시지를 입력하세요...">
+            <button type="submit">전송</button>
+        </form>
+    </div>
 </div>
 
 <script th:inline="javascript">
-    const loginUserId = /*[[${loginUserId}]]*/ null;
-
     let ws;
     let currentChatroomId = null;
     let currentPage = 0;
@@ -33,8 +36,11 @@
 
     const chatroomListDiv = document.getElementById('chatroom-list');
     const messageContainer = document.getElementById('message-container');
+    const messageListContainer = document.getElementById('message-list');
     const messageForm = document.getElementById('message-form');
     const messageInput = document.getElementById('message-input');
+
+    const loginUserId = /*[[${loginUserId}]]*/ null;
 
     document.addEventListener('DOMContentLoaded', function () {
         loadChatrooms();
@@ -48,14 +54,7 @@
                 sendRealtimeMessage();
         });
 
-        messageContainer.addEventListener('scroll', function () {
-            if (this.scrollTop < 1 && !isLoading && !isLastPage) {
-                if (currentChatroomId === 'chatbot')
-                    loadMoreChatbotMessages();
-                else
-                    loadMoreMessages();
-            }
-        });
+        setupIntersectionObserver();
     });
 
     // TODO: 프로필 이미지와 마지막 메시지, 시간 등은 지금은 임시 값으로 넣었고, 나중에 실제 데이터로 교체해야 합니다.
@@ -112,12 +111,32 @@
         currentChatroomId = 'chatbot';
         currentPage = 0;
         isLastPage = false;
-        messageContainer.innerHTML = '';
+        messageListContainer.innerHTML = '';
         messageForm.style.display = 'flex';
 
         loadMoreChatbotMessages();
 
         if (ws) ws.close();
+    }
+
+    function setupIntersectionObserver() {
+        const trigger = document.getElementById('scroll-trigger');
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            const entry = entries[0];
+
+            if (entry.isIntersecting && !isLoading && !isLastPage) {
+                if (currentChatroomId === 'chatbot')
+                    loadMoreChatbotMessages();
+                else if (currentChatroomId !== null)
+                    loadMoreMessages();
+            }
+        }, {
+            root: messageContainer,
+            threshold: 1.0
+        });
+
+        observer.observe(trigger);
     }
 
     function loadMoreChatbotMessages() {
@@ -185,7 +204,7 @@
         currentChatroomId = chatroomId;
         currentPage = 0;
         isLastPage = false;
-        messageContainer.innerHTML = '';
+        messageListContainer.innerHTML = '';
         messageForm.style.display = 'flex';
         loadMoreMessages();
         connectWebSocket();
@@ -271,9 +290,9 @@
         messageRow.appendChild(messageBubble);
 
         if (prepend)
-            messageContainer.prepend(messageRow);
+            messageListContainer.prepend(messageRow);
         else
-            messageContainer.appendChild(messageRow);
+            messageListContainer.appendChild(messageRow);
     }
 </script>
 </body>
