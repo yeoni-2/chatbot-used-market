@@ -47,6 +47,10 @@
                 <button type="submit" class="chatBtn">채팅하기</button>
               </form>
 
+              <form th:action="@{/users/{id}(id=${session.loginUserId})}" method="get" class="button-form">
+                <button type="submit" class="myPageBtn">My Page</button>
+              </form>
+
               <form th:action="@{/logout}" method="post" class="button-form">
                 <button type="submit" class="loginBtn">로그아웃</button>
               </form>
