@@ -44,3 +44,9 @@ write.png
 
 ### oauth2 ###
 src/main/resources/application-google-oauth2.properties
+
+### aws ###
+src/main/resources/application-aws.properties
+
+### ai-api ###
+src/main/resources/application-ai-api.properties

@@ -22,7 +22,7 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .defaultSuccessUrl("/trade", true)
+                        .defaultSuccessUrl("/trades", true)
                         .permitAll()
                 )
                 .logout(logout -> logout

@@ -19,6 +19,6 @@ public class TradeImage {
     @JoinColumn(name = "trade_id", nullable = false)
     private Trade trade;
 
-    @Column(name = "url", nullable = false, length = 100)
+    @Column(name = "url", nullable = false)
     private String url;
 } 

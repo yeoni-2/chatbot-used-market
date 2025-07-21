@@ -50,6 +50,6 @@ public class OAuth2Controller {
             userService.saveUser(user);
         }
 
-        return "redirect:/trade";
+        return "redirect:/trades";
     }
 }

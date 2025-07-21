@@ -13,40 +13,26 @@
 
       body {
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f2f3f6;
+        background-color: #ffffff;
         color: #333;
       }
 
-      .container {
+      .main-container {
         max-width: 1200px;
         margin: 0 auto;
-        padding: 20px;
+        padding: 40px 60px;
       }
 
-      .header {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-bottom: 30px;
-        padding: 20px 0;
-        border-bottom: 2px solid #e0e0e0;
-        position: relative;
-      }
-
-      .header h1 {
-        color: #2c3e50;
-        font-size: 2rem;
-      }
-
+      /* 검색 정보 */
       .search-info {
         text-align: center;
-        margin-bottom: 20px;
-        color: #7f8c8d;
+        margin-bottom: 30px;
+        color: #666;
         font-size: 1.1rem;
       }
 
       .search-keyword {
-        color: #e74c3c;
+        color: #ff6f0e;
         font-weight: bold;
       }
 
@@ -55,71 +41,79 @@
         font-weight: bold;
       }
 
-      .write-btn {
-        background-color: #3498db;
-        color: white;
-        padding: 12px 24px;
-        border: none;
-        border-radius: 6px;
-        text-decoration: none;
-        font-weight: bold;
-        transition: background-color 0.3s;
-      }
-
-      .write-btn:hover {
-        background-color: #2980b9;
-      }
-
+      /* 거래 카드 그리드 */
       .trades-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 30px;
-        margin-top: 20px;
+        gap: 24px;
+        margin-bottom: 40px;
       }
 
       .trade-card {
-        background: white;
+        background: #ffffff;
         border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         overflow: hidden;
-        transition: transform 0.3s, box-shadow 0.3s;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
         cursor: pointer;
+        border: 1px solid #f0f0f0;
       }
 
       .trade-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       }
 
       .trade-image {
         width: 100%;
-        height: 200px;
+        aspect-ratio: 1;
+        background-color: #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+        font-size: 0.9rem;
+      }
+
+      .trade-image img {
+        width: 100%;
+        height: 100%;
         object-fit: cover;
-        background-color: #f8f9fa;
       }
 
       .trade-content {
-        padding: 20px;
+        padding: 16px;
       }
 
       .trade-title {
-        font-size: 1.2rem;
-        font-weight: bold;
-        margin-bottom: 8px;
-        color: #2c3e50;
+        font-size: 1rem;
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 4px;
         display: -webkit-box;
-        -webkit-line-clamp: 2;
+        -webkit-line-clamp: 1;
         -webkit-box-orient: vertical;
         overflow: hidden;
       }
 
       .trade-price {
-        font-size: 1.3rem;
+        font-size: 1.1rem;
         font-weight: bold;
-        color: #e74c3c;
-        margin-bottom: 8px;
+        color: #333;
+        margin-bottom: 4px;
       }
 
+      .trade-location {
+        font-size: 0.85rem;
+        color: #999;
+        margin-bottom: 2px;
+      }
+
+      .trade-time {
+        font-size: 0.8rem;
+        color: #ccc;
+      }
+
+      /* 이전 스타일과의 호환성을 위해 유지 */
       .trade-category {
         display: inline-block;
         background-color: #ecf0f1;
@@ -149,86 +143,149 @@
         color: #7f8c8d;
       }
 
+      /* 거래 없을 때 */
       .no-trades {
         text-align: center;
-        padding: 60px 20px;
-        color: #7f8c8d;
-        font-size: 1.1rem;
+        padding: 80px 20px;
+        color: #999;
       }
 
       .no-trades h3 {
-        margin-bottom: 10px;
-        color: #2c3e50;
+        font-size: 1.3rem;
+        margin-bottom: 12px;
+        color: #666;
       }
 
-      .back-btn {
-        display: inline-block;
-        background-color: #3498db;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 6px;
-        text-decoration: none;
-        font-weight: bold;
-        margin-top: 20px;
-        transition: background-color 0.3s;
+      .no-trades p {
+        font-size: 1rem;
+        color: #999;
       }
 
-      .back-btn:hover {
-        background-color: #2980b9;
+      /* 반응형 디자인 */
+      @media (max-width: 1024px) {
+        .main-container {
+          padding: 20px 16px;
+        }
+
+        .trades-grid {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 20px;
+        }
       }
 
-      /* 플로팅 버튼 스타일 */
-      .floating-btn {
-        position: fixed;
-        bottom: 50%;
-        right: 30px;
-        transform: translateY(50%);
-        width: 80px;
-        height: 80px;
-        background-color: #ff6f0e;
-        color: white;
-        border: none;
-        border-radius: 50%;
-        font-size: 15px;
-        cursor: pointer;
-        box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
-        transition: all 0.3s ease;
-        z-index: 1000;
+      @media (max-width: 768px) {
+        .trades-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 16px;
+        }
+
+        .trade-content {
+          padding: 12px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .trades-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+        }
+
+        .trade-content {
+          padding: 10px;
+        }
+
+        .trade-title {
+          font-size: 0.9rem;
+        }
+
+        .trade-price {
+          font-size: 1rem;
+        }
+      }
+
+      /* 페이지네이션 스타일 */
+      .pagination-container {
         display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 40px;
+        gap: 8px;
+      }
+
+      .pagination-btn {
+        display: inline-flex;
         align-items: center;
         justify-content: center;
+        min-width: 40px;
+        height: 40px;
+        padding: 0 12px;
+        border: 1px solid #e0e0e0;
+        background-color: #ffffff;
+        color: #666;
         text-decoration: none;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        cursor: pointer;
       }
 
-      .floating-btn:hover {
-        background-color: #f26100;
-        transform: translateY(50%) scale(1.05);
-        box-shadow: 0 4px 12px rgba(168, 68, 0, 0.5);
+      .pagination-btn:hover {
+        background-color: #f8f9fa;
+        border-color: #ff6f0e;
+        color: #ff6f0e;
       }
 
-      /* 모바일 반응형 */
+      .pagination-btn.active {
+        background-color: #ff6f0e;
+        border-color: #ff6f0e;
+        color: white;
+      }
+
+      .pagination-btn.disabled {
+        background-color: #f8f9fa;
+        border-color: #e0e0e0;
+        color: #ccc;
+        cursor: not-allowed;
+      }
+
+      .pagination-btn.disabled:hover {
+        background-color: #f8f9fa;
+        border-color: #e0e0e0;
+        color: #ccc;
+      }
+
+      .pagination-info {
+        margin: 0 16px;
+        font-size: 0.9rem;
+        color: #666;
+      }
+
+      /* 페이지네이션 반응형 */
       @media (max-width: 768px) {
-        .floating-btn {
-          bottom: 50%;
-          right: 20px;
-          transform: translateY(50%);
-          width: 50px;
-          height: 50px;
-          font-size: 20px;
+        .pagination-container {
+          gap: 4px;
+        }
+
+        .pagination-btn {
+          min-width: 36px;
+          height: 36px;
+          padding: 0 8px;
+          font-size: 0.85rem;
+        }
+
+        .pagination-info {
+          margin: 0 8px;
+          font-size: 0.8rem;
         }
       }
     </style>
   </head>
 
-  <body style="margin: 0">
+  <body>
     <div th:replace="~{header :: header}"></div>
 
-    <div style="margin-top: 60px; padding: 20px">
-      <div class="container">
-        <div class="header">
-          <h1>검색 결과</h1>
-        </div>
-
+    <div style="margin-top: 60px">
+      <div class="main-container">
         <div class="search-info">
           <span th:text="'검색어: ' + ${keyword}" class="search-keyword"></span>
           <span th:if="${selectedCategory != null and selectedCategory != ''}" th:text="' | 카테고리: ' + ${selectedCategory}" class="search-category"></span>
@@ -242,25 +299,69 @@
 
         <div th:if="${!#lists.isEmpty(trades)}" class="trades-grid">
           <div th:each="trade : ${trades}" class="trade-card" th:onclick="|location.href='/trades/' + ${trade.id}|">
-            <img th:src="${trade.imageUrls[0]}" alt="상품 이미지" class="trade-image" />
+            <div class="trade-image">
+              <img th:if="${!#lists.isEmpty(trade.imageUrls)}" th:src="${trade.imageUrls[0]}" alt="상품 이미지" />
+              <span th:if="${#lists.isEmpty(trade.imageUrls)}">이미지 없음</span>
+            </div>
             <div class="trade-content">
-              <h3 class="trade-title" th:text="${trade.title}">제목</h3>
-              <div class="trade-price" th:text="${trade.price + ' 원'}">가격</div>
-              <div>
-                <span class="trade-category" th:text="${trade.category}">카테고리</span>
-                <span class="trade-status" th:text="${trade.status}">상태</span>
-              </div>
-              <div class="trade-meta">
-                <span th:text="'조회 ' + ${trade.viewCount}">조회수</span>
-                <span th:text="${#temporals.format(trade.createdAt, 'yyyy-MM-dd')}">작성일</span>
-              </div>
+              <h3 class="trade-title" th:text="${trade.title}">제품명</h3>
+              <div class="trade-price" th:text="${trade.price + '원'}">50,000원</div>
+              <div class="trade-location" th:text="${trade.category}">서울 강남구 역삼동</div>
+              <div class="trade-time" th:text="${#temporals.format(trade.createdAt, 'M월 d일')}">2분 전</div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- 플로팅 버튼 -->
-      <a href="/trades/write" class="floating-btn" title="글쓰기"> 거래글쓰기 </a>
+        <!-- 페이지네이션 -->
+        <div th:if="${!#lists.isEmpty(trades) and totalPages > 1}" class="pagination-container">
+          <!-- 첫 페이지 버튼 -->
+          <a th:if="${page > 1}" th:href="@{/trades/search(keyword=${keyword}, category=${selectedCategory}, page=1)}" class="pagination-btn"> 처음 </a>
+
+          <!-- 이전 페이지 버튼 -->
+          <a th:if="${page > 1}" th:href="@{/trades/search(keyword=${keyword}, category=${selectedCategory}, page=${page - 1})}" class="pagination-btn">
+            이전
+          </a>
+
+          <span th:if="${page <= 1}" class="pagination-btn disabled">이전</span>
+
+          <!-- 페이지 번호 버튼들 -->
+          <th:block th:each="pageNum : ${#numbers.sequence(startPage, endPage)}">
+            <a
+              th:if="${pageNum != page}"
+              th:href="@{/trades/search(keyword=${keyword}, category=${selectedCategory}, page=${pageNum})}"
+              class="pagination-btn"
+              th:text="${pageNum}"
+            >
+            </a>
+            <span th:if="${pageNum == page}" class="pagination-btn active" th:text="${pageNum}"> </span>
+          </th:block>
+
+          <!-- 다음 페이지 버튼 -->
+          <a
+            th:if="${page < totalPages}"
+            th:href="@{/trades/search(keyword=${keyword}, category=${selectedCategory}, page=${page + 1})}"
+            class="pagination-btn"
+          >
+            다음
+          </a>
+
+          <span th:if="${page >= totalPages}" class="pagination-btn disabled">다음</span>
+
+          <!-- 마지막 페이지 버튼 -->
+          <a
+            th:if="${page < totalPages}"
+            th:href="@{/trades/search(keyword=${keyword}, category=${selectedCategory}, page=${totalPages})}"
+            class="pagination-btn"
+          >
+            마지막
+          </a>
+        </div>
+
+        <!-- 페이지 정보 -->
+        <div th:if="${!#lists.isEmpty(trades) and totalPages > 1}" class="pagination-info" style="text-align: center; margin-top: 16px">
+          <span th:text="'페이지 ' + ${page} + ' / ' + ${totalPages} + ' (총 ' + ${totalElements} + '개)'"></span>
+        </div>
+      </div>
     </div>
   </body>
 </html>

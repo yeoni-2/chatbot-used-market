@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>거래글 상세</title>
-    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <link rel="stylesheet" th:href="@{/css/header.css}" />
     <style>
       .trade-post-page * {
         margin: 0;
@@ -20,8 +20,7 @@
       /* 메인 컨테이너 스타일 */
       .trade-post-page .container {
         max-width: 1200px;
-        margin: 0 auto;
-        padding: 50px;
+        margin: 50px;
       }
 
       /* 뒤로가기 링크 */
@@ -53,16 +52,19 @@
         width: 100%;
         height: 300px;
         overflow: hidden;
-        padding: 0 50px;
-        padding-top: 30px;
+
         box-sizing: border-box;
         border-radius: 8px;
+        background-color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .trade-post-page .trade-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
         border-radius: 8px;
       }
 
@@ -88,6 +90,13 @@
       .trade-post-page .username {
         font-weight: bold;
         color: #2c3e50;
+        margin-bottom: 4px;
+        font-size: 1.1rem;
+      }
+
+      .trade-post-page .location {
+        color: #7f8c8d;
+        font-size: 0.9rem;
         margin-bottom: 8px;
       }
 
@@ -101,22 +110,22 @@
 
       /* 채팅 버튼 */
       .trade-post-page .chat-btn {
-        background-color: #ff6f0e !important;
-        color: white !important;
-        padding: 12px 24px !important;
-        border: none !important;
-        border-radius: 6px !important;
-        font-weight: bold !important;
-        cursor: pointer !important;
-        transition: all 0.3s !important;
-        font-size: 1.1rem !important;
-        text-decoration: none !important;
-        display: inline-block !important;
+        background-color: #ff6f0e;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 1.1rem;
+        text-decoration: none;
+        display: inline-block;
       }
 
       .trade-post-page .chat-btn:hover {
-        background-color: #f26100 !important;
-        transform: translateY(-2px) !important;
+        background-color: #f26100;
+        transform: translateY(-2px);
       }
 
       /* 구분선 */
@@ -154,6 +163,12 @@
         font-weight: bold;
         color: #e74c3c;
         margin-bottom: 5px;
+      }
+
+      .trade-post-page .views-chats {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
       }
 
       .trade-post-page p {
@@ -226,15 +241,21 @@
 
       .trade-post-page .image-container {
         width: 100%;
-        height: 100%;
+        height: calc(100% - 30px);
         overflow: hidden;
         border-radius: 8px;
+        background-color: #dbdce2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 30px 50px 0 50px;
+        box-sizing: border-box;
       }
 
       .trade-post-page .image-container img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
         border-radius: 8px;
       }
 
@@ -270,7 +291,7 @@
         display: flex;
         justify-content: center;
         gap: 8px;
-        margin-top: 10px;
+        margin-top: 15px;
       }
 
       .trade-post-page .indicator {
@@ -366,30 +387,35 @@
   <body class="trade-post-page">
     <div th:replace="~{header :: header}"></div>
 
-    <div style="margin-top: 60px; padding: 20px">
+    <div style="margin-top: 60px; padding: 20px; background-color: #f2f3f6">
       <div class="container">
         <a href="/trades" class="back-link">&lt; 목록으로</a>
         <div class="trade-detail">
           <div class="trade-image">
-            <div class="image-slider">
+            <div class="image-slider" th:if="${#lists.size(trade.imageUrls) > 0}">
               <button class="slider-btn prev-btn" onclick="changeImage(-1)">&lt;</button>
-              <div class="image-container">
-                <img id="current-image" th:src="${trade.imageUrls[0]}" alt="상품 이미지" />
-              </div>
+              <div class="image-container"><img id="current-image" th:src="${trade.imageUrls[0]}" alt="상품 이미지" /></div>
               <button class="slider-btn next-btn" onclick="changeImage(1)">&gt;</button>
             </div>
-            <div class="image-indicators" th:if="${#lists.size(trade.imageUrls) > 1}">
-              <span
-                th:each="image, iterStat : ${trade.imageUrls}"
-                th:class="${iterStat.index == 0 ? 'indicator active' : 'indicator'}"
-                th:onclick="'goToImage(' + ${iterStat.index} + ')'"
-              ></span>
+            <div class="no-image" th:if="${#lists.size(trade.imageUrls) == 0}">
+              <div style="text-align: center; padding: 50px; color: #6c757d">
+                <div style="font-size: 48px; margin-bottom: 10px">📷</div>
+                <div>이미지가 없습니다</div>
+              </div>
             </div>
+          </div>
+          <div class="image-indicators" th:if="${#lists.size(trade.imageUrls) > 1}">
+            <span
+              th:each="image, iterStat : ${trade.imageUrls}"
+              th:class="${iterStat.index == 0 ? 'indicator active' : 'indicator'}"
+              th:onclick="'goToImage(' + ${iterStat.index} + ')'"
+            ></span>
           </div>
           <div class="trade-info">
             <div class="top-section">
               <div class="user-info">
-                <span class="username">판매자</span>
+                <span class="username" th:text="${trade.sellerNickname != null ? trade.sellerNickname : trade.sellerUsername}">아이디</span>
+                <span class="location">부평 1동</span>
                 <span class="category" th:text="${trade.category}">카테고리</span>
               </div>
               <button class="chat-btn" onclick="startChat()">채팅하기</button>
@@ -399,13 +425,14 @@
               <h2 th:text="${trade.title}">제목</h2>
               <div class="price-views-section">
                 <span class="price" th:text="${trade.price + ' 원'}">가격</span>
-                <span class="views" th:text="'조회 ' + ${trade.viewCount}">조회수</span>
+                <span class="views-chats" th:text="'조회 ' + ${trade.viewCount} + ' | 채팅 ' + ${trade.chatCount}">조회수</span>
               </div>
             </div>
             <div class="status-section">
               <span class="status" th:text="${trade.status}">상태</span>
             </div>
             <p th:text="${trade.description}">설명</p>
+
             <div class="trade-actions" th:if="${isAuthor}">
               <a th:href="@{/trades/{id}/edit(id=${trade.id})}" class="action-link">수정하기</a>
               <div class="action-divider"></div>
@@ -435,6 +462,24 @@
 
         updateImage();
         updateIndicators();
+      }
+
+      function updateImage() {
+        const img = document.getElementById("current-image");
+        if (img && imageUrls[currentImageIndex]) {
+          img.src = imageUrls[currentImageIndex];
+        }
+      }
+
+      function updateIndicators() {
+        const indicators = document.querySelectorAll(".indicator");
+        indicators.forEach((indicator, index) => {
+          if (index === currentImageIndex) {
+            indicator.classList.add("active");
+          } else {
+            indicator.classList.remove("active");
+          }
+        });
       }
 
       function goToImage(index) {

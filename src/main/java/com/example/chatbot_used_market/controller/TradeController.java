@@ -5,9 +5,13 @@ import com.example.chatbot_used_market.dto.TradeResponseDto;
 import com.example.chatbot_used_market.entity.User;
 import com.example.chatbot_used_market.service.TradeService;
 import com.example.chatbot_used_market.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
@@ -34,6 +38,9 @@ public class TradeController {
         Long loginUserId = (Long) session.getAttribute("loginUserId");
         model.addAttribute("loginUserId", loginUserId);
         
+        // hasNickname 변수 추가 (기본값 false)
+        model.addAttribute("hasNickname", false);
+        
         return "trade";
     }
     
@@ -41,20 +48,38 @@ public class TradeController {
     @GetMapping("/search")
     public String searchTrades(@RequestParam String keyword, 
                               @RequestParam(required = false) String category, 
+                              @RequestParam(defaultValue = "1") int page,
+                              @RequestParam(defaultValue = "12") int size,
                               Model model, HttpSession session) {
-        List<TradeResponseDto> trades;
+        // 페이지네이션을 위한 Pageable 객체 생성 (page는 0부터 시작)
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<TradeResponseDto> tradesPage;
         
         if (category != null && !category.isEmpty()) {
             // 키워드와 카테고리 모두로 검색
-            trades = tradeService.searchTradesByKeywordAndCategory(keyword, category);
+            tradesPage = tradeService.searchTradesByKeywordAndCategoryWithPagination(keyword, category, pageable);
         } else {
             // 키워드만으로 검색
-            trades = tradeService.searchTradesByKeyword(keyword);
+            tradesPage = tradeService.searchTradesByKeywordWithPagination(keyword, pageable);
         }
         
-        model.addAttribute("trades", trades);
+        // 페이지네이션 정보 계산
+        int totalPages = tradesPage.getTotalPages();
+        long totalElements = tradesPage.getTotalElements();
+        int currentPage = page;
+        
+        // 페이지 번호 표시 범위 계산 (현재 페이지 기준 앞뒤로 2페이지씩)
+        int startPage = Math.max(1, currentPage - 2);
+        int endPage = Math.min(totalPages, currentPage + 2);
+        
+        model.addAttribute("trades", tradesPage.getContent());
         model.addAttribute("keyword", keyword);
         model.addAttribute("selectedCategory", category);
+        model.addAttribute("page", currentPage);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalElements", totalElements);
+        model.addAttribute("startPage", startPage);
+        model.addAttribute("endPage", endPage);
         
         // 로그인된 사용자 ID 전달
         Long loginUserId = (Long) session.getAttribute("loginUserId");
@@ -75,7 +100,9 @@ public class TradeController {
     
     // 거래글 작성 처리
     @PostMapping
-    public String createTrade(@ModelAttribute TradeRequestDto requestDto, HttpSession session) {
+    public String createTrade(@ModelAttribute TradeRequestDto requestDto, 
+                             @RequestParam(value = "images", required = false) List<MultipartFile> images, 
+                             HttpSession session) {
         // 로그인된 사용자 정보 가져오기
         Long loginUserId = (Long) session.getAttribute("loginUserId");
         if (loginUserId == null) {
@@ -85,7 +112,7 @@ public class TradeController {
         User seller = userRepository.findById(loginUserId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
-        TradeResponseDto responseDto = tradeService.createTrade(requestDto, seller);
+        TradeResponseDto responseDto = tradeService.createTrade(requestDto, images, seller);
         
         // 작성 완료 후 상세 페이지로 리다이렉트
         return "redirect:/trades/" + responseDto.getId();
@@ -129,7 +156,9 @@ public class TradeController {
     
     // 거래글 수정 처리
     @PostMapping("/{id}")
-    public String updateTradePost(@PathVariable Long id, @ModelAttribute TradeRequestDto requestDto, HttpSession session) {
+    public String updateTradePost(@PathVariable Long id, @ModelAttribute TradeRequestDto requestDto, 
+                                 @RequestParam(value = "images", required = false) List<MultipartFile> images, 
+                                 HttpSession session) {
         // 로그인 확인
         Long loginUserId = (Long) session.getAttribute("loginUserId");
         if (loginUserId == null) {
@@ -146,7 +175,7 @@ public class TradeController {
         User seller = userRepository.findById(loginUserId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
-        TradeResponseDto responseDto = tradeService.updateTrade(id, requestDto, seller);
+        TradeResponseDto responseDto = tradeService.updateTrade(id, requestDto, images, seller);
         // 수정 완료 후 상세 페이지로 리다이렉트
         return "redirect:/trades/" + responseDto.getId();
     }
