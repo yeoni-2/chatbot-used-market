@@ -219,7 +219,7 @@
         min-width: 40px;
         height: 40px;
         padding: 0 12px;
-        border: 1px solid #e0e0e0;
+        border: none;
         background-color: #ffffff;
         color: #666;
         text-decoration: none;
@@ -231,33 +231,25 @@
 
       .pagination-btn:hover {
         background-color: #f8f9fa;
-        border-color: #ff6f0e;
         color: #ff6f0e;
-      }
-
-      .pagination-btn.active {
-        background-color: #ff6f0e;
-        border-color: #ff6f0e;
-        color: white;
       }
 
       .pagination-btn.disabled {
         background-color: #f8f9fa;
-        border-color: #e0e0e0;
-        color: #ccc;
+        color: #ddd;
         cursor: not-allowed;
       }
 
       .pagination-btn.disabled:hover {
         background-color: #f8f9fa;
-        border-color: #e0e0e0;
-        color: #ccc;
+        color: #ddd;
       }
 
-      .pagination-info {
-        margin: 0 16px;
-        font-size: 0.9rem;
+      .pagination-divider {
+        margin: 0 8px;
+        font-size: 1rem;
         color: #666;
+        font-weight: normal;
       }
 
       /* 페이지네이션 반응형 */
@@ -272,11 +264,6 @@
           padding: 0 8px;
           font-size: 0.85rem;
         }
-
-        .pagination-info {
-          margin: 0 8px;
-          font-size: 0.8rem;
-        }
       }
     </style>
   </head>
@@ -289,7 +276,7 @@
         <div class="search-info">
           <span th:text="'검색어: ' + ${keyword}" class="search-keyword"></span>
           <span th:if="${selectedCategory != null and selectedCategory != ''}" th:text="' | 카테고리: ' + ${selectedCategory}" class="search-category"></span>
-          <span th:text="' (총 ' + ${#lists.size(trades)} + '개)'"></span>
+          <span th:text="' (총 ' + ${totalElements} + '개)'"></span>
         </div>
 
         <div th:if="${#lists.isEmpty(trades)}" class="no-trades">
@@ -313,28 +300,21 @@
         </div>
 
         <!-- 페이지네이션 -->
-        <div th:if="${!#lists.isEmpty(trades) and totalPages > 1}" class="pagination-container">
-          <!-- 첫 페이지 버튼 -->
-          <a th:if="${page > 1}" th:href="@{/trades/search(keyword=${keyword}, category=${selectedCategory}, page=1)}" class="pagination-btn"> 처음 </a>
-
+        <div th:if="${!#lists.isEmpty(trades) and totalElements > 8}" class="pagination-container">
           <!-- 이전 페이지 버튼 -->
           <a th:if="${page > 1}" th:href="@{/trades/search(keyword=${keyword}, category=${selectedCategory}, page=${page - 1})}" class="pagination-btn">
-            이전
+            &lt;
           </a>
+          <span th:if="${page <= 1}" class="pagination-btn disabled">&lt;</span>
 
-          <span th:if="${page <= 1}" class="pagination-btn disabled">이전</span>
+          <!-- 현재 페이지 (클릭 불가) -->
+          <span class="pagination-btn" th:text="${page}"></span>
 
-          <!-- 페이지 번호 버튼들 -->
-          <th:block th:each="pageNum : ${#numbers.sequence(startPage, endPage)}">
-            <a
-              th:if="${pageNum != page}"
-              th:href="@{/trades/search(keyword=${keyword}, category=${selectedCategory}, page=${pageNum})}"
-              class="pagination-btn"
-              th:text="${pageNum}"
-            >
-            </a>
-            <span th:if="${pageNum == page}" class="pagination-btn active" th:text="${pageNum}"> </span>
-          </th:block>
+          <!-- 구분자 -->
+          <span class="pagination-divider">/</span>
+
+          <!-- 전체 페이지 (클릭 불가) -->
+          <span class="pagination-btn" th:text="${totalPages}"></span>
 
           <!-- 다음 페이지 버튼 -->
           <a
@@ -342,24 +322,9 @@
             th:href="@{/trades/search(keyword=${keyword}, category=${selectedCategory}, page=${page + 1})}"
             class="pagination-btn"
           >
-            다음
+            &gt;
           </a>
-
-          <span th:if="${page >= totalPages}" class="pagination-btn disabled">다음</span>
-
-          <!-- 마지막 페이지 버튼 -->
-          <a
-            th:if="${page < totalPages}"
-            th:href="@{/trades/search(keyword=${keyword}, category=${selectedCategory}, page=${totalPages})}"
-            class="pagination-btn"
-          >
-            마지막
-          </a>
-        </div>
-
-        <!-- 페이지 정보 -->
-        <div th:if="${!#lists.isEmpty(trades) and totalPages > 1}" class="pagination-info" style="text-align: center; margin-top: 16px">
-          <span th:text="'페이지 ' + ${page} + ' / ' + ${totalPages} + ' (총 ' + ${totalElements} + '개)'"></span>
+          <span th:if="${page >= totalPages}" class="pagination-btn disabled">&gt;</span>
         </div>
       </div>
     </div>

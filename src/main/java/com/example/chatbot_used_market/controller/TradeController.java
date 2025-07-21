@@ -49,7 +49,7 @@ public class TradeController {
     public String searchTrades(@RequestParam String keyword, 
                               @RequestParam(required = false) String category, 
                               @RequestParam(defaultValue = "1") int page,
-                              @RequestParam(defaultValue = "12") int size,
+                              @RequestParam(defaultValue = "8") int size,
                               Model model, HttpSession session) {
         // 페이지네이션을 위한 Pageable 객체 생성 (page는 0부터 시작)
         Pageable pageable = PageRequest.of(page - 1, size);

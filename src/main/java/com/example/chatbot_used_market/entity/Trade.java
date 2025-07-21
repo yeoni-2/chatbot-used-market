@@ -54,6 +54,9 @@ public class Trade {
     @OneToMany(mappedBy = "trade", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<TradeImage> tradeImages = new ArrayList<>();
 
+    @OneToMany(mappedBy = "trade", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    private List<Chatroom> chatrooms = new ArrayList<>();
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
