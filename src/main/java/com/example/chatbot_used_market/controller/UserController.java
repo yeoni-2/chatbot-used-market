@@ -89,28 +89,6 @@ public class UserController {
         return "login";
     }
 
-    @GetMapping("/trade")
-    public String tradePage(Model model, @AuthenticationPrincipal Object principal) {
-        String username = null;
-        User user = null;
-
-        if (principal instanceof org.springframework.security.core.userdetails.User userDetails) {
-            username = userDetails.getUsername();
-            user = userService.findByUsername(username);
-        } else if (principal instanceof org.springframework.security.oauth2.core.user.OAuth2User oauth2User) {
-            username = oauth2User.getAttribute("email");
-            user = userService.findByEmail(username);
-        }
-
-        if (user != null) {
-            model.addAttribute("hasNickname", user.getNickname() != null && !user.getNickname().isBlank());
-        } else {
-            model.addAttribute("hasNickname", false);
-        }
-
-        return "trade";
-    }
-
     @GetMapping("/main")
     public String mainPage() {
         return "main";
