@@ -66,7 +66,17 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public List<ChatroomListDto> findMyChatrooms(Long userId) {
+        User currentUser = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
         return chatroomRepository.findByBuyerIdOrSellerId(userId, userId)
-                .stream().map(chatroom -> new ChatroomListDto(chatroom, userId)).collect(Collectors.toList());
+                .stream()
+                .map(chatroom -> {
+                    Message lastMessage = messageRepository.findTopByChatroomIdOrderByCreatedAtDesc(chatroom.getId()).orElse(null);
+                    User opponentUser = chatroom.getSeller().getId().equals(userId) ? chatroom.getBuyer() : chatroom.getSeller();
+
+                    return new ChatroomListDto(chatroom, opponentUser, lastMessage);
+                })
+                .collect(Collectors.toList());
     }
 }

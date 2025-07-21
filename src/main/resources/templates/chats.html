@@ -57,7 +57,20 @@
         setupIntersectionObserver();
     });
 
-    // TODO: 프로필 이미지와 마지막 메시지, 시간 등은 지금은 임시 값으로 넣었고, 나중에 실제 데이터로 교체해야 합니다.
+    function formatTime(timeString) {
+        if (!timeString) return '';
+
+        const now = new Date();
+        const messageTime = new Date(timeString);
+        const diffSeconds = Math.floor((now - messageTime) / 1000);
+        const diffMinutes = Math.floor(diffSeconds / 60);
+
+        if (diffSeconds < 60) return '방금 전';
+        if (diffMinutes < 60) return `${diffMinutes}분 전`;
+
+        return `${messageTime.getFullYear()}-${messageTime.getMonth() + 1}-${messageTime.getDate()}`;
+    }
+
     function loadChatrooms() {
         fetch('/chats')
             .then(response => response.json())
@@ -88,14 +101,14 @@
                     chatroomElement.className = 'chatroom-item';
                     chatroomElement.innerHTML = `
                         <div class="profile-pic-container">
-                            <img src="/images/default-profile.png" alt="profile" class="profile-pic">
+                            <img src="${chatroom.opponentProfileImgUrl || '/images/default-profile.png'}" alt="profile" class="profile-pic">
                         </div>
                         <div class="chatroom-info">
                             <div class="info-header">
                                 <span class="nickname">${chatroom.opponentNickname}</span>
-                                <span class="time">방금 전</span>
+                                <span class="time">${formatTime(chatroom.lastMessageTime)}</span>
                             </div>
-                            <div class="last-message">마지막 메시지...</div>
+                            <div class="last-message">${chatroom.lastMessage}</div>
                         </div>
                     `;
                     chatroomElement.dataset.chatroomId = chatroom.chatroomId;
