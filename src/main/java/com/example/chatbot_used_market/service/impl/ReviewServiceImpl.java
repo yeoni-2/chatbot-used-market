@@ -18,15 +18,26 @@ public class ReviewServiceImpl implements ReviewService {
   }
 
   @Override
-  public Review createReview(User reviewer, User reviewee, Trade trade, Integer rating, String content) {
+  public void createReview(User reviewer, User reviewee, Trade trade, Integer rating, String content) {
     Review review = new Review(reviewer, reviewee, trade, rating, content);
 
-    return reviewRepository.save(review);
+    reviewRepository.save(review);
+//    return reviewRepository.save(review);
   }
 
   @Override
   public Review findReviewById(Long id) {
     return reviewRepository.findById(id).orElse(null);
+  }
+
+  @Override
+  public List<Review> findReceivedReviewsByUserId(Long userId) {
+    return reviewRepository.findReceivedReviewByUserId(userId);
+  }
+
+  @Override
+  public List<Review> findWrittenReviewsByUserId(Long userId) {
+    return reviewRepository.findWrittenReviewByUserId(userId);
   }
 
   @Override
