@@ -102,26 +102,32 @@
         margin-bottom: 4px;
       }
 
+      .trade-category {
+        font-size: 0.85rem;
+        color: #999;
+        margin-bottom: 2px;
+      }
+
       .trade-location {
         font-size: 0.85rem;
         color: #999;
         margin-bottom: 2px;
       }
 
-      .trade-time {
-        font-size: 0.8rem;
-        color: #ccc;
+      .trade-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
 
-      /* 이전 스타일과의 호환성을 위해 유지 */
-      .trade-category {
-        display: inline-block;
-        background-color: #ecf0f1;
-        color: #7f8c8d;
-        padding: 4px 8px;
-        border-radius: 4px;
+      .trade-views {
         font-size: 0.8rem;
-        margin-bottom: 8px;
+        color: #898a93;
+      }
+
+      .trade-time {
+        font-size: 0.8rem;
+        color: #898a93;
       }
 
       .trade-status {
@@ -132,15 +138,6 @@
         border-radius: 4px;
         font-size: 0.8rem;
         margin-left: 8px;
-      }
-
-      .trade-meta {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 12px;
-        font-size: 0.9rem;
-        color: #7f8c8d;
       }
 
       /* 거래 없을 때 */
@@ -291,10 +288,14 @@
               <span th:if="${#lists.isEmpty(trade.imageUrls)}">이미지 없음</span>
             </div>
             <div class="trade-content">
-              <h3 class="trade-title" th:text="${trade.title}">제품명</h3>
-              <div class="trade-price" th:text="${trade.price + '원'}">50,000원</div>
-              <div class="trade-location" th:text="${trade.category}">서울 강남구 역삼동</div>
-              <div class="trade-time" th:text="${#temporals.format(trade.createdAt, 'M월 d일')}">2분 전</div>
+              <h3 class="trade-title" th:text="${trade.title}">제목</h3>
+              <div class="trade-price" th:text="${trade.price + '원'}">가격</div>
+              <div class="trade-category" th:text="${trade.category}">카테고리</div>
+              <div class="trade-location" th:text="${trade.sellerLocation != null ? trade.sellerLocation : '위치 정보 없음'}">위치</div>
+              <div class="trade-meta">
+                <div class="trade-views" th:text="'조회 ' + ${trade.viewCount}">조회수</div>
+                <div class="trade-time" th:text="${#temporals.format(trade.createdAt, 'M월 d일')}">시간</div>
+              </div>
             </div>
           </div>
         </div>
