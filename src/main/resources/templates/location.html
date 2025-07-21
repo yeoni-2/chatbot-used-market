@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>동네 인증</title>
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <script th:src="@{/js/header.js}"></script>
     <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
     <script defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDXzABm6GnKCRQQ59bMNX15TSVZDixkaJI&libraries=maps,marker&region=kr"></script>
     <script>
@@ -133,6 +135,7 @@
     </style>
   </head>
   <body>
+  <div th:replace="~{header :: header}"></div>
     <div class="mainContainer">
       <div class="topbar"></div>
       <div>
