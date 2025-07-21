@@ -177,7 +177,7 @@ public class UserController {
                             return "location";
                         }
                     } catch (Exception e) {
-                        return "error";
+                        return "redirect:/users/"+userId;
                     }
                 });
     }
