@@ -28,62 +28,77 @@ public class ReviewController {
   }
 
   @GetMapping
-  public String reviewForm(@RequestParam("trade_id") Long tradeId, Model model){
+  public String reviewForm(@RequestParam("trade_id") Long tradeId, HttpSession session, Model model){
+    Long userId = (Long)session.getAttribute("loginUserId");
     Trade trade = tradeService.findById(tradeId);
 
     if (trade == null){
-      return "error";
+      return "redirect:/trades";
+    }
+
+    if (!trade.getStatus().equals("판매완료")){
+      return "redirect:/trades";
+    }
+
+    Long buyerId = trade.getBuyer().getId();
+    Long sellerId = trade.getSeller().getId();
+
+    if (!buyerId.equals(userId) && !sellerId.equals(userId)){
+      return "redirect:/trades";
     }
 
     model.addAttribute("trade", trade);
+    model.addAttribute("revieweeId", buyerId.equals(userId) ? sellerId : buyerId);
 
     return "reviewForm";
   }
 
   @PostMapping
-  public String createReview(@Valid @RequestBody ReviewDto reviewDto,
-                             HttpSession session,
-                             @AuthenticationPrincipal OAuth2User oAuth2User){
+  public String createReview(@Valid @ModelAttribute ReviewDto reviewDto,
+                             HttpSession session){
     try {
-//      User reviewer = AuthService.getCurrentUser(session, oAuth2User);
-      User reviewer = userService.findById(3L);
+      Long userId = (Long)session.getAttribute("loginUserId");
+      User reviewer = userService.findById(userId);
       User reviewee = userService.findById(reviewDto.getRevieweeId());
       Trade trade = tradeService.findById(reviewDto.getTradeId());
 
+      if (userId==null || reviewer==null){
+        return "redirect:/trades";
+      }
+
       // 거래완료 상태가 아닌 거래는 리뷰를 작성할 수 없음
-//      if (!trade.getStatus().equals("거래완료")){
-//        return "error";
-//      }
+      if (!trade.getStatus().equals("거래완료")){
+        return "redirect:/trades";
+      }
 
       // 거래와 관계있는 사람만 리뷰를 작성할 수 있음
-//      if (!isRelatedUser(trade, reviewer)){
-//        return "error";
-//      }
-//      if (!isRelatedUser(trade, reviewee)){
-//        return "error";
-//      }
+      if (!isRelatedUser(trade, reviewer)){
+        return "redirect:/trades";
+      }
+      if (!isRelatedUser(trade, reviewee)){
+        return "redirect:/trades";
+      }
 
       reviewService.createReview(reviewer, reviewee, trade, reviewDto.getRating(), reviewDto.getContent());
 
-      return "trade";
+      return "redirect:/trades";
     } catch (Exception e) {
-      return "error";
+      return "redirect:/trades";
     }
   }
 
   @DeleteMapping("/{id}")
   public String deleteReview(@PathVariable("id") Long reviewId,
-                             HttpSession session,
-                             @AuthenticationPrincipal OAuth2User oauth2User){
-//    User user = AuthService.getCurrentUser(session, oauth2User);
-//
-//    if (!reviewService.isAuthor(reviewId, user)){
-//      return "error";
-//    }
+                             HttpSession session){
+    User user = userService.findById((Long)session.getAttribute("loginUserId"));
+
+    if (!reviewService.isAuthor(reviewId, user)){
+      return "redirect:/trades";
+    }
 
     reviewService.deleteReviewById(reviewId);
 
-    return null;
+    return "redirect:/trade";
   }
 
   private boolean isRelatedUser(Trade trade, User user){

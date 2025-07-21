@@ -68,7 +68,7 @@
         <div class="trade-price" th:text="${trade.getPrice() + '원'}"></div>
       </div>
       <form th:action="@{/reviews}" method="post">
-        <input type="hidden" name="trade_id" id="tradeId" th:value="${trade.getId()}">
+        <input type="hidden" name="tradeId" id="tradeId" th:value="${trade.getId()}">
         <p>
           <label for="rating">rating</label>
           <input type="range" name="rating" id="rating" min="1" max="5" list="markers">
@@ -85,6 +85,7 @@
           <label for="content">content</label>
           <input type="text" name="content" id="content">
         </p>
+        <input type="hidden" name="revieweeId" th:value="${revieweeId}">
         <button type="submit">review</button>
       </form>
     </div>

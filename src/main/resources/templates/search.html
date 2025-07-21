@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <title>검색 결과</title>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #ffffff;
+        color: #333;
+      }
+
+      .main-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 60px;
+      }
+
+      /* 검색 정보 */
+      .search-info {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #666;
+        font-size: 1.1rem;
+      }
+
+      .search-keyword {
+        color: #ff6f0e;
+        font-weight: bold;
+      }
+
+      .search-category {
+        color: #3498db;
+        font-weight: bold;
+      }
+
+      /* 거래 카드 그리드 */
+      .trades-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+        margin-bottom: 40px;
+      }
+
+      .trade-card {
+        background: #ffffff;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
+        border: 1px solid #f0f0f0;
+      }
+
+      .trade-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .trade-image {
+        width: 100%;
+        aspect-ratio: 1;
+        background-color: #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+        font-size: 0.9rem;
+      }
+
+      .trade-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .trade-content {
+        padding: 16px;
+      }
+
+      .trade-title {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 4px;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .trade-price {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 4px;
+      }
+
+      .trade-location {
+        font-size: 0.85rem;
+        color: #999;
+        margin-bottom: 2px;
+      }
+
+      .trade-time {
+        font-size: 0.8rem;
+        color: #ccc;
+      }
+
+      /* 이전 스타일과의 호환성을 위해 유지 */
+      .trade-category {
+        display: inline-block;
+        background-color: #ecf0f1;
+        color: #7f8c8d;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        margin-bottom: 8px;
+      }
+
+      .trade-status {
+        display: inline-block;
+        background-color: #2ecc71;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        margin-left: 8px;
+      }
+
+      .trade-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 12px;
+        font-size: 0.9rem;
+        color: #7f8c8d;
+      }
+
+      /* 거래 없을 때 */
+      .no-trades {
+        text-align: center;
+        padding: 80px 20px;
+        color: #999;
+      }
+
+      .no-trades h3 {
+        font-size: 1.3rem;
+        margin-bottom: 12px;
+        color: #666;
+      }
+
+      .no-trades p {
+        font-size: 1rem;
+        color: #999;
+      }
+
+      /* 반응형 디자인 */
+      @media (max-width: 1024px) {
+        .main-container {
+          padding: 20px 16px;
+        }
+
+        .trades-grid {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 20px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .trades-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 16px;
+        }
+
+        .trade-content {
+          padding: 12px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .trades-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+        }
+
+        .trade-content {
+          padding: 10px;
+        }
+
+        .trade-title {
+          font-size: 0.9rem;
+        }
+
+        .trade-price {
+          font-size: 1rem;
+        }
+      }
+
+      /* 페이지네이션 스타일 */
+      .pagination-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 40px;
+        gap: 8px;
+      }
+
+      .pagination-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 40px;
+        height: 40px;
+        padding: 0 12px;
+        border: none;
+        background-color: #ffffff;
+        color: #666;
+        text-decoration: none;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        cursor: pointer;
+      }
+
+      .pagination-btn:hover {
+        background-color: #f8f9fa;
+        color: #ff6f0e;
+      }
+
+      .pagination-btn.disabled {
+        background-color: #f8f9fa;
+        color: #ddd;
+        cursor: not-allowed;
+      }
+
+      .pagination-btn.disabled:hover {
+        background-color: #f8f9fa;
+        color: #ddd;
+      }
+
+      .pagination-divider {
+        margin: 0 8px;
+        font-size: 1rem;
+        color: #666;
+        font-weight: normal;
+      }
+
+      /* 페이지네이션 반응형 */
+      @media (max-width: 768px) {
+        .pagination-container {
+          gap: 4px;
+        }
+
+        .pagination-btn {
+          min-width: 36px;
+          height: 36px;
+          padding: 0 8px;
+          font-size: 0.85rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div th:replace="~{header :: header}"></div>
+
+    <div style="margin-top: 60px">
+      <div class="main-container">
+        <div class="search-info">
+          <span th:text="'검색어: ' + ${keyword}" class="search-keyword"></span>
+          <span th:if="${selectedCategory != null and selectedCategory != ''}" th:text="' | 카테고리: ' + ${selectedCategory}" class="search-category"></span>
+          <span th:text="' (총 ' + ${totalElements} + '개)'"></span>
+        </div>
+
+        <div th:if="${#lists.isEmpty(trades)}" class="no-trades">
+          <h3>검색 결과가 없습니다.</h3>
+          <p>다른 키워드로 검색해보세요.</p>
+        </div>
+
+        <div th:if="${!#lists.isEmpty(trades)}" class="trades-grid">
+          <div th:each="trade : ${trades}" class="trade-card" th:onclick="|location.href='/trades/' + ${trade.id}|">
+            <div class="trade-image">
+              <img th:if="${!#lists.isEmpty(trade.imageUrls)}" th:src="${trade.imageUrls[0]}" alt="상품 이미지" />
+              <span th:if="${#lists.isEmpty(trade.imageUrls)}">이미지 없음</span>
+            </div>
+            <div class="trade-content">
+              <h3 class="trade-title" th:text="${trade.title}">제품명</h3>
+              <div class="trade-price" th:text="${trade.price + '원'}">50,000원</div>
+              <div class="trade-location" th:text="${trade.category}">서울 강남구 역삼동</div>
+              <div class="trade-time" th:text="${#temporals.format(trade.createdAt, 'M월 d일')}">2분 전</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 페이지네이션 -->
+        <div th:if="${!#lists.isEmpty(trades) and totalElements > 8}" class="pagination-container">
+          <!-- 이전 페이지 버튼 -->
+          <a th:if="${page > 1}" th:href="@{/trades/search(keyword=${keyword}, category=${selectedCategory}, page=${page - 1})}" class="pagination-btn">
+            &lt;
+          </a>
+          <span th:if="${page <= 1}" class="pagination-btn disabled">&lt;</span>
+
+          <!-- 현재 페이지 (클릭 불가) -->
+          <span class="pagination-btn" th:text="${page}"></span>
+
+          <!-- 구분자 -->
+          <span class="pagination-divider">/</span>
+
+          <!-- 전체 페이지 (클릭 불가) -->
+          <span class="pagination-btn" th:text="${totalPages}"></span>
+
+          <!-- 다음 페이지 버튼 -->
+          <a
+            th:if="${page < totalPages}"
+            th:href="@{/trades/search(keyword=${keyword}, category=${selectedCategory}, page=${page + 1})}"
+            class="pagination-btn"
+          >
+            &gt;
+          </a>
+          <span th:if="${page >= totalPages}" class="pagination-btn disabled">&gt;</span>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

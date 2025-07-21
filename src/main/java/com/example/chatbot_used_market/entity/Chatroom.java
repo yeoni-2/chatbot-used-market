@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -28,6 +30,9 @@ public class Chatroom {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trade_id")
     private Trade trade;
+
+    @OneToMany(mappedBy = "chatroom", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    private List<Message> messages = new ArrayList<>();
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;

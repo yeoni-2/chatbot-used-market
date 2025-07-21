@@ -12,16 +12,17 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/main", "/signup", "/login", "/css/**", "/trade", "/js/**", "/images/**", "/check/**", "/trades").permitAll()
+                        .requestMatchers("/", "/main", "/signup", "/login", "/css/**", "/trade", "/js/**", "/images/**", "/check/**", "/trades", "/trades/search", "/trades/{id}").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .defaultSuccessUrl("/trade", true)
+                        .defaultSuccessUrl("/trades", true)
                         .permitAll()
                 )
                 .logout(logout -> logout
