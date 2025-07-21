@@ -10,11 +10,13 @@ import com.example.chatbot_used_market.repository.TradeRepository;
 import com.example.chatbot_used_market.repository.UserRepository;
 import com.example.chatbot_used_market.service.S3Service;
 import com.example.chatbot_used_market.service.TradeService;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,8 +28,8 @@ public class TradeServiceImpl implements TradeService {
     private final UserRepository userRepository;
     private final TradeImageRepository tradeImageRepository;
     private final S3Service s3Service;
-    
-    public TradeServiceImpl(TradeRepository tradeRepository, UserRepository userRepository, 
+
+    public TradeServiceImpl(TradeRepository tradeRepository, UserRepository userRepository,
                            TradeImageRepository tradeImageRepository, S3Service s3Service) {
         this.tradeRepository = tradeRepository;
         this.userRepository = userRepository;
@@ -52,7 +54,7 @@ public class TradeServiceImpl implements TradeService {
                 .map(this::convertToResponseDto)
                 .toList();
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public List<TradeResponseDto> searchTradesByKeywordAndCategory(String keyword, String category) {
@@ -61,21 +63,21 @@ public class TradeServiceImpl implements TradeService {
                 .map(this::convertToResponseDto)
                 .toList();
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public Page<TradeResponseDto> searchTradesByKeywordWithPagination(String keyword, Pageable pageable) {
         Page<Trade> trades = tradeRepository.findByTitleContainingAndStatusOrderByViewCountDesc(keyword, "판매중", pageable);
         return trades.map(this::convertToResponseDto);
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public Page<TradeResponseDto> searchTradesByKeywordAndCategoryWithPagination(String keyword, String category, Pageable pageable) {
         Page<Trade> trades = tradeRepository.findByTitleContainingAndCategoryAndStatusOrderByViewCountDesc(keyword, category, "판매중", pageable);
         return trades.map(this::convertToResponseDto);
     }
-    
+
     @Override
     @Transactional
     public TradeResponseDto createTrade(TradeRequestDto requestDto, List<MultipartFile> images, User seller) {
@@ -83,7 +85,7 @@ public class TradeServiceImpl implements TradeService {
         if (images != null && !images.isEmpty()) {
             validateImages(images);
         }
-        
+
         // 2. 이미지 업로드 (거래글 저장 전에 먼저 업로드)
         List<String> uploadedImageUrls = new ArrayList<>();
         if (images != null && !images.isEmpty()) {
@@ -95,7 +97,7 @@ public class TradeServiceImpl implements TradeService {
                 throw new RuntimeException("이미지 업로드에 실패했습니다: " + e.getMessage(), e);
             }
         }
-        
+
         try {
             // 3. 거래글 생성 및 저장
             Trade trade = new Trade();
@@ -104,9 +106,9 @@ public class TradeServiceImpl implements TradeService {
             trade.setCategory(requestDto.getCategory());
             trade.setDescription(requestDto.getDescription());
             trade.setSeller(seller);
-            
+
             Trade savedTrade = tradeRepository.save(trade);
-            
+
             // 4. 이미지 URL을 DB에 저장
             if (!uploadedImageUrls.isEmpty()) {
                 try {
@@ -117,9 +119,9 @@ public class TradeServiceImpl implements TradeService {
                     throw new RuntimeException("이미지 정보 저장에 실패했습니다: " + e.getMessage(), e);
                 }
             }
-            
+
             return convertToResponseDto(savedTrade);
-            
+
         } catch (Exception e) {
             // 거래글 저장 실패 시 업로드된 이미지들 삭제
             cleanupUploadedImages(uploadedImageUrls);
@@ -146,44 +148,44 @@ public class TradeServiceImpl implements TradeService {
         List<String> existingImageUrls = existingImages.stream()
                 .map(TradeImage::getUrl)
                 .toList();
-        
+
         List<String> uploadedImageUrls = new ArrayList<>();
-        
+
         try {
             // 새로운 이미지가 있는 경우에만 처리
             if (images != null && !images.isEmpty()) {
                 // 1. 새 이미지 파일 검증
                 validateImages(images);
-                
+
                 // 2. 새 이미지 업로드
                 uploadedImageUrls = uploadImagesWithRollback(images);
-                
+
                 // 3. 기존 이미지 삭제 (S3에서)
                 cleanupUploadedImages(existingImageUrls);
-                
+
                 // 4. 기존 이미지 정보 DB에서 삭제
                 tradeImageRepository.deleteByTradeId(id);
-                
+
                 // 5. 새 이미지 정보 DB에 저장
                 saveTradeImages(trade, uploadedImageUrls);
             }
-            
+
             // 6. 거래글 기본 정보 업데이트
             trade.setTitle(requestDto.getTitle());
             trade.setPrice(requestDto.getPrice());
             trade.setCategory(requestDto.getCategory());
             trade.setDescription(requestDto.getDescription());
-            
+
             Trade updatedTrade = tradeRepository.save(trade);
-            
+
             return convertToResponseDto(updatedTrade);
-            
+
         } catch (Exception e) {
             // 실패 시 롤백: 새로 업로드된 이미지 삭제
             if (!uploadedImageUrls.isEmpty()) {
                 cleanupUploadedImages(uploadedImageUrls);
             }
-            
+
             throw new RuntimeException("거래글 수정에 실패했습니다: " + e.getMessage(), e);
         }
     }
@@ -199,13 +201,13 @@ public class TradeServiceImpl implements TradeService {
         List<String> imageUrls = images.stream()
                 .map(TradeImage::getUrl)
                 .toList();
-        
+
         // S3에서 이미지 삭제
         cleanupUploadedImages(imageUrls);
-        
+
         // DB에서 이미지 정보 삭제
         tradeImageRepository.deleteByTradeId(id);
-        
+
         // 거래글 삭제
         tradeRepository.delete(trade);
     }
@@ -219,7 +221,16 @@ public class TradeServiceImpl implements TradeService {
         trade.setViewCount(trade.getViewCount() + 1);
         tradeRepository.save(trade);
     }
-    
+
+    @Override
+    public Page<TradeResponseDto> getPagedTrades(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("viewCount").descending());
+        Page<Trade> tradesPage = tradeRepository.findByStatus("판매중", pageable);
+
+        return tradesPage.map(this::convertToResponseDto);
+    }
+
+
     /**
      * 이미지 파일들을 사전 검증
      */
@@ -227,47 +238,47 @@ public class TradeServiceImpl implements TradeService {
         if (images.size() > 5) {
             throw new IllegalArgumentException("이미지는 최대 5장까지 업로드 가능합니다.");
         }
-        
+
         for (int i = 0; i < images.size(); i++) {
             MultipartFile file = images.get(i);
-            
+
             if (file.isEmpty()) {
                 throw new IllegalArgumentException("빈 파일이 포함되어 있습니다. (파일 " + (i + 1) + ")");
             }
-            
+
             String contentType = file.getContentType();
             if (contentType == null || !contentType.startsWith("image/")) {
                 throw new IllegalArgumentException("이미지 파일만 업로드 가능합니다. (파일 " + (i + 1) + ": " + file.getOriginalFilename() + ")");
             }
-            
+
             if (file.getSize() > 5 * 1024 * 1024) {
                 throw new IllegalArgumentException("파일 크기는 5MB 이하여야 합니다. (파일 " + (i + 1) + ": " + file.getOriginalFilename() + ")");
             }
         }
     }
-    
+
     /**
      * 이미지 업로드 (실패 시 자동 롤백)
      */
     private List<String> uploadImagesWithRollback(List<MultipartFile> images) {
         List<String> uploadedUrls = new ArrayList<>();
-        
+
         try {
             for (MultipartFile file : images) {
                 String imageUrl = s3Service.uploadImage(file);
                 uploadedUrls.add(imageUrl);
             }
-            
+
             return uploadedUrls;
-            
+
         } catch (Exception e) {
             // 실패 시 이미 업로드된 이미지들 삭제
             cleanupUploadedImages(uploadedUrls);
-            
+
             throw new RuntimeException("이미지 업로드 실패: " + e.getMessage(), e);
         }
     }
-    
+
     /**
      * 업로드된 이미지들을 S3에서 삭제
      */
@@ -275,7 +286,7 @@ public class TradeServiceImpl implements TradeService {
         if (imageUrls == null || imageUrls.isEmpty()) {
             return;
         }
-        
+
         for (String imageUrl : imageUrls) {
             try {
                 s3Service.deleteImage(imageUrl);
@@ -284,7 +295,7 @@ public class TradeServiceImpl implements TradeService {
             }
         }
     }
-    
+
     /**
      * 거래 이미지 정보를 DB에 저장
      */
@@ -296,7 +307,7 @@ public class TradeServiceImpl implements TradeService {
             tradeImageRepository.save(tradeImage);
         }
     }
-    
+
     @Transactional(readOnly = true)
     private TradeResponseDto convertToResponseDto(Trade trade) {
         TradeResponseDto responseDto = new TradeResponseDto();
@@ -308,7 +319,7 @@ public class TradeServiceImpl implements TradeService {
         responseDto.setPrice(trade.getPrice());
         responseDto.setCategory(trade.getCategory());
         responseDto.setDescription(trade.getDescription());
-        
+
         // 모든 이미지 URL 설정
         List<TradeImage> tradeImages = tradeImageRepository.findByTradeId(trade.getId());
         if (!tradeImages.isEmpty()) {
@@ -319,14 +330,39 @@ public class TradeServiceImpl implements TradeService {
         } else {
             responseDto.setImageUrls(List.of());
         }
-        
+
         responseDto.setStatus(trade.getStatus());
         responseDto.setViewCount(trade.getViewCount());
-        
+
         // 채팅 수 계산 (실제 구현에서는 ChatroomRepository에서 조회)
         responseDto.setChatCount(0); // 임시로 0으로 설정
-        
+
         responseDto.setCreatedAt(trade.getCreatedAt());
+        
         return responseDto;
+    }
+
+    @Override
+    public Trade findById(Long id) {
+        return tradeRepository.findById(id).orElse(null);
+    }
+
+    public boolean existsById(Long id){
+        return tradeRepository.existsById(id);
+    }
+
+    @Override
+    @Transactional
+    public TradeResponseDto updateTradeStatus(Long tradeId, String status, Long currentUserId) {
+        Trade trade = tradeRepository.findById(tradeId)
+                .orElseThrow(() -> new RuntimeException("Trade not found with id: " + tradeId));
+
+        if (!trade.getSeller().getId().equals(currentUserId))
+            throw new SecurityException("거래 상태를 변경할 권한이 없습니다.");
+
+        trade.setStatus(status);
+        Trade updatedTrade = tradeRepository.save(trade);
+
+        return convertToResponseDto(updatedTrade);
     }
 }

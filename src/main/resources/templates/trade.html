@@ -3,9 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <title>거래 페이지</title>
-    <link rel="stylesheet" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <script th:src="@{/js/header.js}"></script>
 
-    <script>
+    <script th:inline="javascript">
       // 닉네임 설정 팝업 쿠키
       function getCookie(name) {
         const value = `; ${document.cookie}`;
@@ -27,6 +28,59 @@
           alert("닉네임은 프로필 페이지에서 설정 가능합니다.");
           setCookie("nicknameAlertShown", "true", 7);
         }
+
+        let page = 1;
+        let isLoading = false;
+        let hasNext = /*[[${hasNext}]]*/ false;
+
+        const observerTarget = document.getElementById("scroll-trigger");
+
+        const observer = new IntersectionObserver(async (entries) => {
+          const entry = entries[0];
+          if (entry.isIntersecting && !isLoading && hasNext) {
+            isLoading = true;
+            try {
+              const res = await fetch(`/trades/api?page=${page}&size=8`);
+              const data = await res.json();
+
+              data.content.forEach(trade => {
+                const card = document.createElement("div");
+                card.className = "trade-card";
+                card.onclick = () => location.href = `/trades/${trade.id}`;
+                card.innerHTML = `
+                  <img src="${trade.tradeImgUrl || ''}" class="trade-image"
+                    onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjhmOWZhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OTk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlPC90ZXh0Pjwvc3ZnPg==';">
+                  <div class="trade-content">
+                    <h3 class="trade-title">${trade.title}</h3>
+                    <div class="trade-price">${trade.price} 원</div>
+                    <div>
+                      <span class="trade-category">${trade.category}</span>
+                      <span class="trade-status">${trade.status}</span>
+                    </div>
+                    <div class="trade-meta">
+                      <span>조회 ${trade.viewCount}</span>
+                      <span>${trade.createdAt.substring(0, 10)}</span>
+                    </div>
+                  </div>
+                `;
+                document.querySelector(".trades-grid").appendChild(card);
+              });
+
+              hasNext = !data.last;
+              page++;
+            } catch (e) {
+              console.error(e);
+            } finally {
+              isLoading = false;
+            }
+          }
+        }, {
+          root: null,
+          rootMargin: "0px",
+          threshold: 1.0
+        });
+
+        observer.observe(observerTarget);
       };
     </script>
 
@@ -113,7 +167,6 @@
         text-align: center;
       }
 
-      /* 거래 카드 그리드 */
       .trades-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -196,7 +249,6 @@
         color: #898a93;
       }
 
-      /* 거래 없을 때 */
       .no-trades {
         text-align: center;
         padding: 80px 20px;
@@ -214,7 +266,7 @@
         color: #999;
       }
 
-      /* 플로팅 버튼 */
+      /* 플로팅 버튼 스타일 */
       .floating-btn {
         position: fixed;
         top: 50%;
@@ -375,16 +427,20 @@
               <span th:if="${#lists.isEmpty(trade.imageUrls)}">이미지 없음</span>
             </div>
             <div class="trade-content">
-              <h3 class="trade-title" th:text="${trade.title}"></h3>
-              <div class="trade-price" th:text="${trade.price + '원'}"></div>
-              <div class="trade-category" th:text="${trade.category}"></div>
+              <h3 class="trade-title" th:text="${trade.title}">제목</h3>
+              <div class="trade-price" th:text="${trade.price + '원'}">가격</div>
+              <div class="trade-category" th:text="${trade.category}">카테고리</div>
               <div class="trade-meta">
-                <div class="trade-views" th:text="'조회 ' + ${trade.viewCount}"></div>
-                <div class="trade-time" th:text="${#temporals.format(trade.createdAt, 'M월 d일')}"></div>
+                <div class="trade-views" th:text="'조회 ' + ${trade.viewCount}">조회수</div>
+                <div class="trade-time" th:text="${#temporals.format(trade.createdAt, 'M월 d일')}">시간</div>
               </div>
             </div>
           </div>
         </div>
+
+        <!-- 무한스크롤 트리거 -->
+        <div id="scroll-trigger" style="height: 1px;"></div>
+      </div>
 
         <!-- 플로팅 버튼 -->
         <a href="/trades/write" class="floating-btn" title="거래글쓰기"> 거래글쓰기 </a>

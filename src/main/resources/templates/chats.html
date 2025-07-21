@@ -3,38 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <title>채팅</title>
-    <style>
-        body { display: flex; font-family: sans-serif; }
-        #left-frame { width: 30%; height: 95vh; border-right: 1px solid #ccc; padding: 10px; }
-        #right-frame { width: 70%; height: 95vh; padding: 10px; display: flex; flex-direction: column;}
-
-        #chatroom-list { flex-grow: 1; overflow-y: auto; }
-        .chatroom-item { cursor: pointer; padding: 10px; border-bottom: 1px solid #eee; }
-        .chatroom-item:hover { background-color: #f0f0f0; }
-
-        #message-container { flex-grow: 1; border: 1px solid #ddd; padding: 10px; overflow-y: scroll; margin-bottom: 10px;}
-        #message-form { display: flex; }
-        #message-input { flex-grow: 1; padding: 5px; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <script th:src="@{/js/header.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/chat.css}">
 </head>
 <body>
-<div id="left-frame">
-    <h1>내 채팅 목록</h1>
-    <div id="chatroom-list"></div>
-</div>
-<div id="right-frame">
-    <div id="message-container">
-        <p>채팅방을 선택해주세요.</p>
+<div th:replace="~{header :: header}"></div>
+<div class="chat-container">
+    <div id="left-frame">
+        <h1>내 채팅 목록</h1>
+        <div id="chatroom-list"></div>
     </div>
-    <form id="message-form" style="display: none;">
-        <input type="text" id="message-input" placeholder="메시지를 입력하세요...">
-        <button type="submit">전송</button>
-    </form>
+    <div id="right-frame">
+        <div id="trade-header"></div>
+        <div id="message-container">
+            <div id="scroll-trigger" style="height: 1px;"></div>
+            <div id="message-list">
+                <p>채팅방을 선택해주세요.</p>
+            </div>
+        </div>
+        <form id="message-form" style="display: none;">
+            <input type="text" id="message-input" placeholder="메시지를 입력하세요...">
+            <button type="submit">전송</button>
+        </form>
+    </div>
 </div>
 
 <script th:inline="javascript">
-    const loginUserId = /*[[${loginUserId}]]*/ null;
-
     let ws;
     let currentChatroomId = null;
     let currentPage = 0;
@@ -43,8 +38,11 @@
 
     const chatroomListDiv = document.getElementById('chatroom-list');
     const messageContainer = document.getElementById('message-container');
+    const messageListContainer = document.getElementById('message-list');
     const messageForm = document.getElementById('message-form');
     const messageInput = document.getElementById('message-input');
+
+    const loginUserId = /*[[${loginUserId}]]*/ null;
 
     document.addEventListener('DOMContentLoaded', function () {
         loadChatrooms();
@@ -58,41 +56,65 @@
                 sendRealtimeMessage();
         });
 
-        messageContainer.addEventListener('scroll', function () {
-            if (this.scrollTop < 1 && !isLoading && !isLastPage) {
-                if (currentChatroomId === 'chatbot')
-                    loadMoreChatbotMessages();
-                else
-                    loadMoreMessages();
-            }
-        });
+        setupIntersectionObserver();
     });
+
+    function formatTime(timeString) {
+        if (!timeString) return '';
+
+        const now = new Date();
+        const messageTime = new Date(timeString);
+        const diffSeconds = Math.floor((now - messageTime) / 1000);
+        const diffMinutes = Math.floor(diffSeconds / 60);
+
+        if (diffSeconds < 60) return '방금 전';
+        if (diffMinutes < 60) return `${diffMinutes}분 전`;
+
+        return `${messageTime.getFullYear()}-${messageTime.getMonth() + 1}-${messageTime.getDate()}`;
+    }
 
     function loadChatrooms() {
         fetch('/chats')
             .then(response => response.json())
             .then(data => {
-                chatroomListDiv.innerHTML = '';
-
+                const chatroomListDiv = document.getElementById('chatroom-list');
                 const chatbotItem = document.createElement('div');
 
+                chatroomListDiv.innerHTML = '';
                 chatbotItem.className = 'chatroom-item';
-                chatbotItem.textContent = '🤖 챗봇 상담사';
+                chatbotItem.innerHTML = `
+                    <div class="profile-pic-container">
+                        <span class="chatbot-icon">🤖</span>
+                    </div>
+                    <div class="chatroom-info">
+                        <div class="info-header">
+                            <span class="nickname">챗봇 상담사</span>
+                        </div>
+                        <div class="last-message">궁금한 점을 물어보세요!</div>
+                    </div>
+                `;
                 chatbotItem.dataset.chatroomId = 'chatbot';
-                chatbotItem.addEventListener('click', () => {
-                    loadChatbotUI();
-                });
+                chatbotItem.addEventListener('click', () => loadChatbotUI());
                 chatroomListDiv.appendChild(chatbotItem);
 
                 data.forEach(chatroom => {
                     const chatroomElement = document.createElement('div');
 
                     chatroomElement.className = 'chatroom-item';
-                    chatroomElement.textContent = chatroom.opponentNickname + '님과의 대화';
+                    chatroomElement.innerHTML = `
+                        <div class="profile-pic-container">
+                            <img src="${chatroom.opponentProfileImgUrl || '/images/default-profile.png'}" alt="profile" class="profile-pic">
+                        </div>
+                        <div class="chatroom-info">
+                            <div class="info-header">
+                                <span class="nickname">${chatroom.opponentNickname}</span>
+                                <span class="time">${formatTime(chatroom.lastMessageTime)}</span>
+                            </div>
+                            <div class="last-message">${chatroom.lastMessage}</div>
+                        </div>
+                    `;
                     chatroomElement.dataset.chatroomId = chatroom.chatroomId;
-                    chatroomElement.addEventListener('click', () => {
-                        loadMessages(chatroom.chatroomId);
-                    });
+                    chatroomElement.addEventListener('click', () => loadMessages(chatroom.chatroomId));
                     chatroomListDiv.appendChild(chatroomElement);
                 });
             });
@@ -104,12 +126,33 @@
         currentChatroomId = 'chatbot';
         currentPage = 0;
         isLastPage = false;
-        messageContainer.innerHTML = '';
+        messageListContainer.innerHTML = '';
+        document.getElementById('trade-header').innerHTML = '';
         messageForm.style.display = 'flex';
 
         loadMoreChatbotMessages();
 
         if (ws) ws.close();
+    }
+
+    function setupIntersectionObserver() {
+        const trigger = document.getElementById('scroll-trigger');
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            const entry = entries[0];
+
+            if (entry.isIntersecting && !isLoading && !isLastPage) {
+                if (currentChatroomId === 'chatbot')
+                    loadMoreChatbotMessages();
+                else if (currentChatroomId !== null)
+                    loadMoreMessages();
+            }
+        }, {
+            root: messageContainer,
+            threshold: 1.0
+        });
+
+        observer.observe(trigger);
     }
 
     function loadMoreChatbotMessages() {
@@ -177,10 +220,65 @@
         currentChatroomId = chatroomId;
         currentPage = 0;
         isLastPage = false;
-        messageContainer.innerHTML = '';
+        messageListContainer.innerHTML = '';
         messageForm.style.display = 'flex';
+        loadTradeHeader(chatroomId);
         loadMoreMessages();
         connectWebSocket();
+    }
+
+    function loadTradeHeader(chatroomId) {
+        const headerDiv = document.getElementById('trade-header');
+
+        fetch(`/chats/${chatroomId}/details`)
+            .then(response => response.json())
+            .then(details => {
+                let buttonHtml = '';
+
+                if (loginUserId === details.sellerId && details.tradeStatus === '판매중') {
+                    buttonHtml = `<button class="trade-confirm-btn" data-trade-id="${details.tradeId}">거래확정하기</button>`;
+                } else if (details.tradeStatus === '거래완료') {
+                    buttonHtml = `<button class="trade-complete-btn" disabled>거래완료</button>`;
+                }
+
+                headerDiv.innerHTML = `
+                    <div class="trade-info">
+                        <div class="trade-details">
+                            <span class="trade-title">${details.tradeTitle}</span>
+                            <span class="trade-price">${details.tradePrice.toLocaleString()}원</span>
+                        </div>
+                        ${buttonHtml}
+                    </div>
+                `;
+
+                const confirmBtn = headerDiv.querySelector('.trade-confirm-btn');
+                if (confirmBtn) {
+                    confirmBtn.addEventListener('click', handleTradeConfirm);
+                }
+            });
+    }
+
+    function handleTradeConfirm(event) {
+        const tradeId = event.target.dataset.tradeId;
+        if (!confirm('거래를 확정하시겠습니까?')) return;
+
+        fetch(`/trades/${tradeId}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: '거래완료' })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('상태 변경 실패');
+            return response.json();
+        })
+        .then(updatedTrade => {
+            const button = event.target;
+            button.textContent = '거래완료';
+            button.className = 'trade-complete-btn';
+            button.disabled = true;
+            alert('거래가 완료되었습니다.');
+        })
+        .catch(error => alert(error.message));
     }
 
     function connectWebSocket() {
@@ -250,14 +348,22 @@
     }
 
     function appendMessage(message, prepend = false) {
-        const messageElement = document.createElement('div');
+        const messageRow = document.createElement('div');
+        const messageBubble = document.createElement('div');
 
-        messageElement.textContent = `${message.senderNickname}: ${message.content}`;
+        messageRow.className = 'message-row';
+        if (loginUserId === message.senderId || message.senderNickname === '나')
+            messageRow.classList.add('my-message-row');
+        else
+            messageRow.classList.add('opponent-message-row');
+        messageBubble.className = 'message-bubble';
+        messageBubble.textContent = message.content;
+        messageRow.appendChild(messageBubble);
 
         if (prepend)
-            messageContainer.prepend(messageElement);
+            messageListContainer.prepend(messageRow);
         else
-            messageContainer.appendChild(messageElement);
+            messageListContainer.appendChild(messageRow);
     }
 </script>
 </body>

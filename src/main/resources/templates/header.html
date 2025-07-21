@@ -1,105 +1,23 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
   <head>
     <meta charset="UTF-8" />
-    <title>Header</title>
-    <style>
-      .fixed-header {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        background: #f0f0f0;
-        padding: 10px 20px;
-        z-index: 1000;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .header-left {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-      }
-
-      .search-container {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .search-input {
-        padding: 8px 12px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-size: 14px;
-        width: 300px;
-      }
-
-      .category-select {
-        padding: 8px 12px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-size: 14px;
-        background-color: white;
-        cursor: pointer;
-        min-width: 120px;
-      }
-
-      .category-select:focus {
-        outline: none;
-        border-color: #3498db;
-      }
-
-      .search-button {
-        padding: 8px 16px;
-        background-color: #3498db;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
-      }
-
-      .search-button:hover {
-        background-color: #2980b9;
-      }
-
-      .button-link,
-      .fixed-header button {
-        display: inline-block;
-        padding: 6px 12px;
-        background-color: #ffffff;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-weight: bold;
-        color: #333;
-        text-decoration: none;
-        cursor: pointer;
-      }
-
-      .button-link:hover,
-      .fixed-header button:hover {
-        background-color: #f5f5f5;
-      }
-
-      .button-form {
-        display: inline;
-      }
-    </style>
   </head>
   <body>
     <header th:fragment="header">
       <div class="fixed-header">
         <div class="header-left">
-        <a href="/main" class="mainBtn">
-            <img th:src="@{/images/logo.svg}" alt="로고">
-        </a>
+          <a href="/main" class="mainBtn">
+            <img th:src="@{/images/logo.svg}" alt="로고" />
+          </a>
 
-        <a href="/trades" class="tradeBtn">중고거래</a>
+          <a th:href="@{/trades}" class="tradeBtn">중고거래</a>
+          <th:block th:if="${session.loginUserId != null}">
+            <a href="/trade" class="locationBtn">동네인증</a>
+          </th:block>
+        </div>
 
+        <div class="header-right">
           <div class="search-container">
             <form th:action="@{/trades/search}" method="get" style="display: flex; align-items: center; gap: 10px">
               <select name="category" class="category-select">
@@ -116,24 +34,28 @@
               <button type="submit" class="search-button">검색</button>
             </form>
           </div>
+
+          <span>
+            <th:block th:if="${session.loginUserId == null}">
+              <form th:action="@{/login}" method="get" class="button-form">
+                <button type="submit" class="loginBtn">로그인</button>
+              </form>
+            </th:block>
+
+            <th:block th:if="${session.loginUserId != null}">
+              <form th:action="@{/chats/page}" method="get" class="button-form">
+                <button type="submit" class="chatBtn">채팅하기</button>
+              </form>
+
+              <form th:action="@{/logout}" method="post" class="button-form">
+                <button type="submit" class="loginBtn">로그아웃</button>
+              </form>
+            </th:block>
+          </span>
         </div>
+      </div>
 
-        <span style="float:right;">
-      <th:block th:if="${session.loginUserId == null}">
-        <form th:action="@{/login}" method="get" class="button-form">
-          <button type="submit" class="loginBtn">로그인</button>
-        </form>
-      </th:block>
-
-      <th:block th:if="${session.loginUserId != null}">
-        <form th:action="@{/logout}" method="post" class="button-form">
-          <button type="submit" class="loginBtn">로그아웃</button>
-        </form>
-      </th:block>
-    </span>
-    </div>
-</header>
-    <script th:inline="javascript">
+      <script th:inline="javascript">
         // 페이지 로드 시 선택된 카테고리 설정
         document.addEventListener("DOMContentLoaded", function () {
           const urlParams = new URLSearchParams(window.location.search);
@@ -144,6 +66,7 @@
             categorySelect.value = selectedCategory;
           }
         });
-    </script>
+      </script>
+    </header>
   </body>
 </html>
