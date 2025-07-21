@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>동네 인증</title>
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <script th:src="@{/js/header.js}"></script>
     <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
     <script defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDXzABm6GnKCRQQ59bMNX15TSVZDixkaJI&libraries=maps,marker&region=kr"></script>
     <script>
@@ -133,11 +135,13 @@
     </style>
   </head>
   <body>
+  <div th:replace="~{header :: header}"></div>
     <div class="mainContainer">
       <div class="topbar"></div>
       <div>
         <input type="checkbox" name="userAgree" id="userAgree">
         <label for="userAgree">위치 정보 활용에 동의하시려면 체크해주세요</label>
+        <br>
         <label for="dongNameResult">어디에 살고 계신가요?</label>
         <input type="text" id="dongNameResult" placeholder="예) 서울 강서구 화곡동" disabled>
         <p th:if="${error != null}" th:text="${error}"></p>

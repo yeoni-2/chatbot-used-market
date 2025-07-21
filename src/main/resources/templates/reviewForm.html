@@ -1,22 +1,22 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>review form</title>
     <script>
-      function setRatingOnInputListener() {
-        const rating = document.querySelector("#rating");
-        const ratingValue = document.querySelector("#ratingValue");
+      function setRatingOnInputListener(){
+        const rating = document.querySelector('#rating');
+        const ratingValue = document.querySelector('#ratingValue');
 
         ratingValue.textContent = rating.value;
 
-        rating.addEventListener("input", (e) => {
+        rating.addEventListener('input', (e) => {
           ratingValue.textContent = e.target.value;
         });
       }
 
-      window.addEventListener("load", () => {
+      window.addEventListener('load', () => {
         setRatingOnInputListener();
       });
     </script>
@@ -68,10 +68,10 @@
         <div class="trade-price" th:text="${trade.getPrice() + '원'}"></div>
       </div>
       <form th:action="@{/reviews}" method="post">
-        <input type="hidden" name="trade_id" id="tradeId" th:value="${trade.getId()}" />
+        <input type="hidden" name="tradeId" id="tradeId" th:value="${trade.getId()}">
         <p>
           <label for="rating">rating</label>
-          <input type="range" name="rating" id="rating" min="1" max="5" list="markers" />
+          <input type="range" name="rating" id="rating" min="1" max="5" list="markers">
           <span id="ratingValue"></span>
           <datalist id="markers">
             <option value="1"></option>
@@ -83,8 +83,9 @@
         </p>
         <p>
           <label for="content">content</label>
-          <input type="text" name="content" id="content" />
+          <input type="text" name="content" id="content">
         </p>
+        <input type="hidden" name="revieweeId" th:value="${revieweeId}">
         <button type="submit">review</button>
       </form>
     </div>
