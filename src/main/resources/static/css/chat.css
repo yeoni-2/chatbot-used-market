@@ -1,13 +1,19 @@
 body {
     font-family: sans-serif;
     margin: 0;
+    background-color: #f8f9fa;
+    padding-top: 60px;
 }
 
 .chat-container {
     display: flex;
-    width: 100%;
-    margin-top: 55px;
-    height: calc(100vh - 55px);
+    max-width: 1200px;
+    margin: 20px auto;
+    background-color: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    height: calc(100vh - 100px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 #left-frame {
@@ -16,15 +22,14 @@ body {
     border-right: 1px solid #e9ecef;
     display: flex;
     flex-direction: column;
-    background-color: #ffffff;
-    height: 100%;
 }
 
 #left-frame h1 {
-    font-size: 1.25rem;
-    padding: 20px 16px;
+    font-size: 1.1rem;
+    padding: 16px;
     margin: 0;
     font-weight: 600;
+    border-bottom: 1px solid #e9ecef;
 }
 
 #chatroom-list {
@@ -67,8 +72,6 @@ body {
     width: 65%;
     display: flex;
     flex-direction: column;
-    background-color: #f8f9fa;
-    height: 100%;
 }
 
 .chatbot-icon {
@@ -120,7 +123,7 @@ body {
 
 .my-message-row {
     justify-content: flex-end;
-    align-self: flex-end;
+    margin-left: auto;
 }
 
 .opponent-message-row {
@@ -182,6 +185,21 @@ body {
     background-color: #ffffff;
 }
 
+#trade-header .trade-info {
+    display: flex;
+    align-items: center;
+    /*justify-content: space-between;*/
+}
+
+.trade-thumbnail {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #f0f0f0;
+    margin-right: 12px;
+}
+
 .trade-info {
     display: flex;
     align-items: center;
@@ -191,6 +209,7 @@ body {
 .trade-details {
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
 }
 
 .trade-title {
@@ -209,6 +228,7 @@ body {
     border-radius: 6px;
     font-weight: bold;
     cursor: pointer;
+    margin-left: auto;
 }
 
 .trade-confirm-btn {
@@ -220,4 +240,18 @@ body {
     background-color: #868e96;
     color: white;
     cursor: not-allowed;
+}
+
+.tts-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0 8px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.tts-button:hover {
+    opacity: 1.0;
 }

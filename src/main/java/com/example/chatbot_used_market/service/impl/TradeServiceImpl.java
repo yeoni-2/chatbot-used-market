@@ -82,13 +82,13 @@ public class TradeServiceImpl implements TradeService {
     @Transactional
     public TradeResponseDto createTrade(TradeRequestDto requestDto, List<MultipartFile> images, User seller) {
         // 1. 이미지 파일 사전 검증
-        if (images != null && !images.isEmpty()) {
+        if (images != null && !images.isEmpty() && !(images.size()==1 && images.get(0).getOriginalFilename().isEmpty())) {
             validateImages(images);
         }
 
         // 2. 이미지 업로드 (거래글 저장 전에 먼저 업로드)
         List<String> uploadedImageUrls = new ArrayList<>();
-        if (images != null && !images.isEmpty()) {
+        if (images != null && !images.isEmpty() && !(images.size()==1 && images.get(0).getOriginalFilename().isEmpty())) {
             try {
                 uploadedImageUrls = uploadImagesWithRollback(images);
             } catch (Exception e) {
