@@ -1,5 +1,6 @@
 package com.example.chatbot_used_market.service;
 
+import com.example.chatbot_used_market.dto.ChatroomDetailDto;
 import com.example.chatbot_used_market.dto.ChatroomListDto;
 import com.example.chatbot_used_market.entity.Chatroom;
 import com.example.chatbot_used_market.dto.MessageDto;
@@ -14,4 +15,5 @@ public interface ChatService {
     Slice<MessageDto> getMessages(Long chatroomId, Pageable pageable);
     Message createMessage(Long chatroomId, Long senderId, String content);
     List<ChatroomListDto> findMyChatrooms(Long userId);
+    ChatroomDetailDto getChatroomDetails(Long chatroomId);
 }

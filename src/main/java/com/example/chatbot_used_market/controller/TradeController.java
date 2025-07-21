@@ -2,9 +2,11 @@ package com.example.chatbot_used_market.controller;
 
 import com.example.chatbot_used_market.dto.TradeRequestDto;
 import com.example.chatbot_used_market.dto.TradeResponseDto;
+import com.example.chatbot_used_market.dto.TradeStatusUpdateDto;
 import com.example.chatbot_used_market.entity.User;
 import com.example.chatbot_used_market.service.TradeService;
 import com.example.chatbot_used_market.repository.UserRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -146,6 +148,24 @@ public class TradeController {
         tradeService.deleteTrade(id);
         // 삭제 완료 후 목록 페이지로 리다이렉트
         return "redirect:/trades";
+    }
+
+    // --- 거래 상태 변경 API 추가 ---
+    @PatchMapping("/{id}/status")
+    @ResponseBody
+    public ResponseEntity<TradeResponseDto> updateTradeStatus(
+            @PathVariable Long id,
+            @RequestBody TradeStatusUpdateDto requestDto,
+            HttpSession session) {
+
+        Long loginUserId = (Long) session.getAttribute("loginUserId");
+
+        if (loginUserId == null)
+            return ResponseEntity.status(401).build();
+
+        TradeResponseDto updatedTrade = tradeService.updateTradeStatus(id, requestDto.getStatus(), loginUserId);
+
+        return ResponseEntity.ok(updatedTrade);
     }
 
     // 무한스크롤 API

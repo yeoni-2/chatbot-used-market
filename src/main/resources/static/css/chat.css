@@ -175,3 +175,49 @@ body {
 #message-form button:hover {
     background-color: #0056b3;
 }
+
+#trade-header {
+    padding: 10px 20px;
+    border-bottom: 1px solid #e9ecef;
+    background-color: #ffffff;
+}
+
+.trade-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.trade-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.trade-title {
+    font-size: 1rem;
+}
+
+.trade-price {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-top: 4px;
+}
+
+.trade-confirm-btn, .trade-complete-btn {
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.trade-confirm-btn {
+    background-color: #FF6F0F;
+    color: white;
+}
+
+.trade-complete-btn {
+    background-color: #868e96;
+    color: white;
+    cursor: not-allowed;
+}

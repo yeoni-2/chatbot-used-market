@@ -8,6 +8,7 @@ import com.example.chatbot_used_market.repository.TradeRepository;
 import com.example.chatbot_used_market.repository.UserRepository;
 import com.example.chatbot_used_market.service.TradeService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
@@ -93,7 +94,7 @@ public class TradeServiceImpl implements TradeService {
 
         return tradesPage.map(this::convertToResponseDto);
     }
-    
+
     private TradeResponseDto convertToResponseDto(Trade trade) {
         TradeResponseDto responseDto = new TradeResponseDto();
         responseDto.setId(trade.getId());
@@ -116,5 +117,20 @@ public class TradeServiceImpl implements TradeService {
 
     public boolean existsById(Long id){
         return tradeRepository.existsById(id);
+    }
+
+    @Override
+    @Transactional
+    public TradeResponseDto updateTradeStatus(Long tradeId, String status, Long currentUserId) {
+        Trade trade = tradeRepository.findById(tradeId)
+                .orElseThrow(() -> new RuntimeException("Trade not found with id: " + tradeId));
+
+        if (!trade.getSeller().getId().equals(currentUserId))
+            throw new SecurityException("거래 상태를 변경할 권한이 없습니다.");
+
+        trade.setStatus(status);
+        Trade updatedTrade = tradeRepository.save(trade);
+
+        return convertToResponseDto(updatedTrade);
     }
 }

@@ -18,4 +18,5 @@ public interface TradeService {
     Page<TradeResponseDto> getPagedTrades(int page, int size);
     Trade findById(Long id);
     boolean existsById(Long id);
+    TradeResponseDto updateTradeStatus(Long tradeId, String status, Long currentUserId);
 }
