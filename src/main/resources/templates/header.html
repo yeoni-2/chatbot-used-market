@@ -13,7 +13,7 @@
 
           <a th:href="@{/trades}" class="tradeBtn">중고거래</a>
           <th:block th:if="${session.loginUserId != null}">
-            <a href="/trade" class="locationBtn">동네인증</a>
+            <a th:href="@{/users/{loginUserId}/locations(loginUserId=${session.loginUserId})}" class="locationBtn">동네인증</a>
           </th:block>
         </div>
 
