@@ -360,6 +360,21 @@
         messageBubble.textContent = message.content;
         messageRow.appendChild(messageBubble);
 
+        if (message.senderNickname === '챗봇') {
+            const ttsButton = document.createElement('button');
+
+            ttsButton.className = 'tts-button';
+            ttsButton.textContent = '🔊';
+            ttsButton.addEventListener('click', () => {
+                speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(message.content);
+
+                utterance.lang = 'ko-KR';
+                speechSynthesis.speak(utterance);
+            });
+            messageRow.appendChild(ttsButton);
+        }
+
         if (prepend)
             messageListContainer.prepend(messageRow);
         else

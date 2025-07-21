@@ -221,3 +221,17 @@ body {
     color: white;
     cursor: not-allowed;
 }
+
+.tts-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0 8px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.tts-button:hover {
+    opacity: 1.0;
+}
