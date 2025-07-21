@@ -2,7 +2,9 @@ package com.example.chatbot_used_market.controller;
 
 import com.example.chatbot_used_market.dto.UserLocationDto;
 import com.example.chatbot_used_market.dto.UserSignupDto;
+import com.example.chatbot_used_market.entity.Review;
 import com.example.chatbot_used_market.entity.User;
+import com.example.chatbot_used_market.service.ReviewService;
 import com.example.chatbot_used_market.service.UserService;
 import com.example.chatbot_used_market.util.GeometryUtil;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -15,13 +17,17 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @Controller
 public class UserController {
 
     private final UserService userService;
+    private final ReviewService reviewService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, ReviewService reviewService) {
         this.userService = userService;
+        this.reviewService = reviewService;
     }
 
     @GetMapping("/signup")
@@ -116,6 +122,29 @@ public class UserController {
         return "main";
     }
 
+    @GetMapping("/users/{id}")
+    public String userProfile(@PathVariable("id") Long targetUserId, HttpSession session, Model model){
+        Long userId = (Long)session.getAttribute("loginUserId");
+
+        if (targetUserId == null || !targetUserId.equals(userId)){
+            return "redirect:/users/"+userId;
+        }
+
+        User user = userService.findById(userId);
+
+        if (user == null) return "redirect:/login";
+
+        model.addAttribute("user", user);
+
+        List<Review> receivedReviews = reviewService.findReceivedReviewsByUserId(userId);
+        List<Review> writtenReviews = reviewService.findWrittenReviewsByUserId(userId);
+
+        model.addAttribute("receivedReviews", receivedReviews);
+        model.addAttribute("writtenReviews", writtenReviews);
+
+        return "userProfile";
+    }
+
     @GetMapping("/users/{id}/locations")
     public String userLocation(@PathVariable("id") Long targetUserId, HttpSession session, Model model){
         Long userId = (Long)session.getAttribute("loginUserId");
@@ -131,9 +160,9 @@ public class UserController {
 
     @PostMapping("/users/{id}/locations")
     public Mono<String> authUserLocation(@Valid UserLocationDto userLocationDto,
-                                   @PathVariable(name = "id") Long targetUserId,
-                                   HttpSession session,
-                                   Model model) {
+                                         @PathVariable(name = "id") Long targetUserId,
+                                         HttpSession session,
+                                         Model model) {
         Long userId = (Long)session.getAttribute("loginUserId");
 
         if (userId == null){
@@ -145,33 +174,33 @@ public class UserController {
         }
 
         return userService
-            .googleGeocodingByLocation(userLocationDto.getLocation())
-            .flatMap(result -> {
-                try {
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    JsonNode locationNode = objectMapper.readTree(result)
-                            .get("results").get(0)
-                            .get("geometry").get("location");
-                    double latitude = locationNode.get("lat").asDouble();
-                    double longitude = locationNode.get("lng").asDouble();
+                .googleGeocodingByLocation(userLocationDto.getLocation())
+                .map(result -> {
+                    try {
+                        ObjectMapper objectMapper = new ObjectMapper();
+                        JsonNode locationNode = objectMapper.readTree(result)
+                                .get("results").get(0)
+                                .get("geometry").get("location");
+                        double latitude = locationNode.get("lat").asDouble();
+                        double longitude = locationNode.get("lng").asDouble();
 
-                    // distance <= 2km
-                    if (GeometryUtil.isInDistance(
-                            userLocationDto.getLatitude(),
-                            userLocationDto.getLongitude(),
-                            latitude, longitude, 2)) {
-                        userService.updatePositionAndLocationById(userId, GeometryUtil.getPoint(latitude, longitude), userLocationDto.getDongName());
+                        // distance <= 2km
+                        if (GeometryUtil.isInDistance(
+                                userLocationDto.getLatitude(),
+                                userLocationDto.getLongitude(),
+                                latitude, longitude, 2)) {
+                            userService.updatePositionAndLocationById(userId, GeometryUtil.getPoint(latitude, longitude), userLocationDto.getDongName());
 
-                        return Mono.just("redirect:/main");
-                    } else {
-                        model.addAttribute("error", "현재 위치와 입력하신 주소 간의 거리가 너무 멉니다.");
-                        model.addAttribute("loginUserId", userId);
+                            return "redirect:/main";
+                        } else {
+                            model.addAttribute("error", "현재 위치와 입력하신 주소 간의 거리가 너무 멉니다.");
+                            model.addAttribute("loginUserId", userId);
 
-                        return Mono.just("location");
+                            return "location";
+                        }
+                    } catch (Exception e) {
+                        return "error";
                     }
-                } catch (Exception e) {
-                    return Mono.just("error");
-                }
-            });
+                });
     }
 }
