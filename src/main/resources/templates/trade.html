@@ -43,33 +43,34 @@
             const res = await fetch(`/trades/api?page=${page}&size=8`);
             const data = await res.json();
 
-            data.content.forEach(trade => {
-              const card = document.createElement("div");
-              card.className = "trade-card";
-              card.onclick = () => location.href = `/trades/${trade.id}`;
+              data.content.forEach(trade => {
+                const card = document.createElement("div");
+                card.className = "trade-card";
+                card.onclick = () => location.href = `/trades/${trade.id}`;
 
-              // 이미지 처리 - 초기 로드와 동일한 구조로 수정
-              const hasImage = trade.imageUrls && trade.imageUrls.length > 0;
-              const imageHtml = hasImage
-                ? `<img src="${trade.imageUrls[0]}" alt="상품 이미지" />`
-                : `<span>이미지 없음</span>`;
+                // 이미지 처리 - 초기 로드와 동일한 구조로 수정
+                const hasImage = trade.imageUrls && trade.imageUrls.length > 0;
+                const imageHtml = hasImage
+                  ? `<img src="${trade.imageUrls[0]}" alt="상품 이미지" />`
+                  : `<span>이미지 없음</span>`;
 
-              card.innerHTML = `
-                <div class="trade-image">
-                  ${imageHtml}
-                </div>
-                <div class="trade-content">
-                  <h3 class="trade-title">${trade.title}</h3>
-                  <div class="trade-price">${trade.price} 원</div>
-                  <div class="trade-category">${trade.category}</div>
-                  <div class="trade-meta">
-                    <div class="trade-views">조회 ${trade.viewCount}</div>
-                    <div class="trade-time">${trade.createdAt.substring(5, 10).replace('-', '월 ') + '일'}</div>
+                card.innerHTML = `
+                  <div class="trade-image">
+                    ${imageHtml}
                   </div>
-                </div>
-              `;
-              document.querySelector(".trades-grid").appendChild(card);
-            });
+                  <div class="trade-content">
+                    <h3 class="trade-title">${trade.title}</h3>
+                    <div class="trade-price">${trade.price} 원</div>
+                    <div class="trade-category">${trade.category}</div>
+                    <div class="trade-location">${trade.sellerLocation || '위치 정보 없음'}</div>
+                    <div class="trade-meta">
+                      <div class="trade-views">조회 ${trade.viewCount}</div>
+                      <div class="trade-time">${trade.createdAt.substring(5, 10).replace('-', '월 ') + '일'}</div>
+                    </div>
+                  </div>
+                `;
+                document.querySelector(".trades-grid").appendChild(card);
+              });
 
             hasNext = !data.last;
             page++;
@@ -238,11 +239,17 @@
       margin-bottom: 2px;
     }
 
-    .trade-meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+      .trade-location {
+        font-size: 0.85rem;
+        color: #999;
+        margin-bottom: 2px;
+      }
+
+      .trade-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
 
     .trade-views {
       font-size: 0.8rem;
@@ -425,23 +432,24 @@
       <p>첫 번째 거래글을 작성해보세요!</p>
     </div>
 
-    <div th:if="${!#lists.isEmpty(trades)}" class="trades-grid">
-      <div th:each="trade : ${trades}" class="trade-card" th:onclick="|location.href='/trades/' + ${trade.id}|">
-        <div class="trade-image">
-          <img th:if="${!#lists.isEmpty(trade.imageUrls)}" th:src="${trade.imageUrls[0]}" alt="상품 이미지" />
-          <span th:if="${#lists.isEmpty(trade.imageUrls)}">이미지 없음</span>
-        </div>
-        <div class="trade-content">
-          <h3 class="trade-title" th:text="${trade.title}">제목</h3>
-          <div class="trade-price" th:text="${trade.price + '원'}">가격</div>
-          <div class="trade-category" th:text="${trade.category}">카테고리</div>
-          <div class="trade-meta">
-            <div class="trade-views" th:text="'조회 ' + ${trade.viewCount}">조회수</div>
-            <div class="trade-time" th:text="${#temporals.format(trade.createdAt, 'M월 d일')}">시간</div>
+        <div th:if="${!#lists.isEmpty(trades)}" class="trades-grid">
+          <div th:each="trade : ${trades}" class="trade-card" th:onclick="|location.href='/trades/' + ${trade.id}|">
+            <div class="trade-image">
+              <img th:if="${!#lists.isEmpty(trade.imageUrls)}" th:src="${trade.imageUrls[0]}" alt="상품 이미지" />
+              <span th:if="${#lists.isEmpty(trade.imageUrls)}">이미지 없음</span>
+            </div>
+            <div class="trade-content">
+              <h3 class="trade-title" th:text="${trade.title}">제목</h3>
+              <div class="trade-price" th:text="${trade.price + '원'}">가격</div>
+              <div class="trade-category" th:text="${trade.category}">카테고리</div>
+              <div class="trade-location" th:text="${trade.sellerLocation != null ? trade.sellerLocation : '위치 정보 없음'}">위치</div>
+              <div class="trade-meta">
+                <div class="trade-views" th:text="'조회 ' + ${trade.viewCount}">조회수</div>
+                <div class="trade-time" th:text="${#temporals.format(trade.createdAt, 'M월 d일')}">시간</div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
 
     <!-- 무한스크롤 트리거 -->
     <div id="scroll-trigger" style="height: 1px;"></div>

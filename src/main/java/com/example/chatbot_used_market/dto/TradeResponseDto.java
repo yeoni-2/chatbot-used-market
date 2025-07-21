@@ -12,6 +12,7 @@ public class TradeResponseDto {
     private Long sellerId;
     private String sellerUsername;
     private String sellerNickname;
+    private String sellerLocation;
     private String title;
     private Integer price;
     private String category;

@@ -315,6 +315,7 @@ public class TradeServiceImpl implements TradeService {
         responseDto.setSellerId(trade.getSeller().getId());
         responseDto.setSellerUsername(trade.getSeller().getUsername());
         responseDto.setSellerNickname(trade.getSeller().getNickname());
+        responseDto.setSellerLocation(trade.getSeller().getLocation());
         responseDto.setTitle(trade.getTitle());
         responseDto.setPrice(trade.getPrice());
         responseDto.setCategory(trade.getCategory());
