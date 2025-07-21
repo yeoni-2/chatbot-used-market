@@ -2,14 +2,17 @@ package com.example.chatbot_used_market.dto;
 
 import com.example.chatbot_used_market.entity.Chatroom;
 import com.example.chatbot_used_market.entity.Trade;
+import com.example.chatbot_used_market.entity.TradeImage;
 import lombok.Getter;
+
+import java.util.List;
 
 @Getter
 public class ChatroomDetailDto {
     private Long tradeId;
     private String tradeTitle;
     private Integer tradePrice;
-    private String tradeImgUrl;
+    private String tradeThumbnailUrl;
     private String tradeStatus;
     private Long sellerId;
 
@@ -19,8 +22,12 @@ public class ChatroomDetailDto {
         this.tradeId = trade.getId();
         this.tradeTitle = trade.getTitle();
         this.tradePrice = trade.getPrice();
-        //this.tradeImgUrl = trade.getTradeImgUrl(); // Trade 엔티티에 getTradeImgUrl()이 있다고 가정
         this.tradeStatus = trade.getStatus();
         this.sellerId = chatroom.getSeller().getId();
+
+        List<TradeImage> tradeImages = chatroom.getTrade().getTradeImages();
+        if (tradeImages != null && !tradeImages.isEmpty()) {
+            this.tradeThumbnailUrl = tradeImages.get(0).getUrl();
+        }
     }
 }

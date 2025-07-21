@@ -209,6 +209,7 @@ function loadTradeHeader(chatroomId) {
 
             headerDiv.innerHTML = `
                 <div class="trade-info">
+                    <img src="${details.tradeThumbnailUrl || '/images/default-image.png'}" alt="trade-thumb" class="trade-thumbnail">
                     <div class="trade-details">
                         <span class="trade-title">${details.tradeTitle}</span>
                         <span class="trade-price">${details.tradePrice.toLocaleString()}원</span>
