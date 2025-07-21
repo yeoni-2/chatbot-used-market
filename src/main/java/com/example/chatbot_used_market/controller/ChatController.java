@@ -1,5 +1,6 @@
 package com.example.chatbot_used_market.controller;
 
+import com.example.chatbot_used_market.dto.ChatroomDetailDto;
 import com.example.chatbot_used_market.dto.ChatroomDto;
 import com.example.chatbot_used_market.dto.ChatroomListDto;
 import com.example.chatbot_used_market.dto.MessageDto;
@@ -63,5 +64,13 @@ public class ChatController {
         List<ChatroomListDto> chatrooms = chatService.findMyChatrooms(currentUserId);
 
         return ResponseEntity.ok(chatrooms);
+    }
+
+    @GetMapping("/{id}/details")
+    @ResponseBody
+    public ResponseEntity<ChatroomDetailDto> getChatroomDetails(@PathVariable("id") Long chatroomId) {
+        ChatroomDetailDto details = chatService.getChatroomDetails(chatroomId);
+
+        return ResponseEntity.ok(details);
     }
 }

@@ -16,4 +16,5 @@ public interface TradeService {
     void incrementViewCount(Long id);
     Trade findById(Long id);
     boolean existsById(Long id);
+    TradeResponseDto updateTradeStatus(Long tradeId, String status, Long currentUserId);
 }

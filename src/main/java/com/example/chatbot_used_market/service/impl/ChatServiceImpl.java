@@ -1,5 +1,6 @@
 package com.example.chatbot_used_market.service.impl;
 
+import com.example.chatbot_used_market.dto.ChatroomDetailDto;
 import com.example.chatbot_used_market.dto.ChatroomListDto;
 import com.example.chatbot_used_market.dto.MessageDto;
 import com.example.chatbot_used_market.entity.Chatroom;
@@ -78,5 +79,12 @@ public class ChatServiceImpl implements ChatService {
                     return new ChatroomListDto(chatroom, opponentUser, lastMessage);
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public ChatroomDetailDto getChatroomDetails(Long chatroomId) {
+        Chatroom chatroom = chatroomRepository.findById(chatroomId)
+                .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
+        return new ChatroomDetailDto(chatroom);
     }
 }
