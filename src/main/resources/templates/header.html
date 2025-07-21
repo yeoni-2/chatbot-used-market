@@ -1,23 +1,52 @@
 <header th:fragment="header">
     <div class="fixed-header">
-        <a href="/main" class="mainBtn">
-            <img th:src="@{/images/logo.svg}" alt="로고">
-        </a>
+        <div class="header-left">
+            <a href="/main" class="mainBtn">
+             <img th:src="@{/images/logo.svg}" alt="로고">
+            </a>
 
-        <a href="/trade" class="tradeBtn">중고거래</a>
+            <a th:href="@{/trades}" class="tradeBtn">중고거래</a>
+            <!-- 경로랑 클래스 이름은 예시로 만들어 둠. 나중에 바꾸기 -->
+            <th:block th:if="${session.loginUserId != null}">
+                <a href="/trade" class="locationBtn">동네인증</a>
+            </th:block>
+        </div>
 
-        <span style="float:right;">
-      <th:block th:if="${session.loginUserId == null}">
-        <form th:action="@{/login}" method="get" class="button-form">
-          <button type="submit" class="loginBtn">로그인</button>
-        </form>
-      </th:block>
+        <div class="header-right">
+            <div class="search-container">
+                <form th:action="@{/trades/search}" method="get" style="display: flex; align-items: center; gap: 10px">
+                    <select name="category" class="category-select">
+                        <option value="">전체</option>
+                        <option value="전자기기">전자기기</option>
+                        <option value="의류">의류</option>
+                        <option value="도서">도서</option>
+                        <option value="가구">가구</option>
+                        <option value="스포츠">스포츠</option>
+                        <option value="뷰티">뷰티</option>
+                        <option value="기타">기타</option>
+                    </select>
+                    <input type="text" name="keyword" class="search-input" placeholder="검색어를 입력하세요..." th:value="${keyword}" />
+                    <button type="submit" class="search-button">검색</button>
+                </form>
+            </div>
 
-      <th:block th:if="${session.loginUserId != null}">
-        <form th:action="@{/logout}" method="post" class="button-form">
-          <button type="submit" class="loginBtn">로그아웃</button>
-        </form>
-      </th:block>
-    </span>
+            <span>
+                <th:block th:if="${session.loginUserId == null}">
+                    <form th:action="@{/login}" method="get" class="button-form">
+                        <button type="submit" class="loginBtn">로그인</button>
+                    </form>
+                </th:block>
+
+                <th:block th:if="${session.loginUserId != null}">
+                    <form th:action="@{/chats/page}" method="get" class="button-form">
+                        <button type="submit" class="chatBtn">채팅하기</button>
+                    </form>
+
+                    <form th:action="@{/logout}" method="post" class="button-form">
+                        <button type="submit" class="loginBtn">로그아웃</button>
+                    </form>
+                </th:block>
+            </span>
+        </div>
     </div>
 </header>
