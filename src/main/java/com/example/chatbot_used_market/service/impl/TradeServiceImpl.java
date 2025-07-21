@@ -8,6 +8,10 @@ import com.example.chatbot_used_market.repository.TradeRepository;
 import com.example.chatbot_used_market.repository.UserRepository;
 import com.example.chatbot_used_market.service.TradeService;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
@@ -80,6 +84,14 @@ public class TradeServiceImpl implements TradeService {
         
         trade.setViewCount(trade.getViewCount() + 1);
         tradeRepository.save(trade);
+    }
+
+    @Override
+    public Page<TradeResponseDto> getPagedTrades(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("viewCount").descending());
+        Page<Trade> tradesPage = tradeRepository.findByStatus("판매중", pageable);
+
+        return tradesPage.map(this::convertToResponseDto);
     }
     
     private TradeResponseDto convertToResponseDto(Trade trade) {

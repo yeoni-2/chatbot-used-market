@@ -8,6 +8,7 @@ import com.example.chatbot_used_market.repository.UserRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
 
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
@@ -27,8 +28,10 @@ public class TradeController {
     //거래글 목록 페이지
     @GetMapping
     public String tradeList(Model model, HttpSession session) {
-        List<TradeResponseDto> trades = tradeService.getAllTrades();
-        model.addAttribute("trades", trades);
+        Page<TradeResponseDto> page = tradeService.getPagedTrades(0, 8);
+
+        model.addAttribute("trades", page.getContent());
+        model.addAttribute("hasNext", !page.isLast());
         
         // 로그인된 사용자 ID 전달
         Long loginUserId = (Long) session.getAttribute("loginUserId");
@@ -143,5 +146,13 @@ public class TradeController {
         tradeService.deleteTrade(id);
         // 삭제 완료 후 목록 페이지로 리다이렉트
         return "redirect:/trades";
+    }
+
+    // 무한스크롤 API
+    @GetMapping("/api")
+    @ResponseBody
+    public Page<TradeResponseDto> getPagedTrades(@RequestParam(defaultValue = "0") int page,
+                                                 @RequestParam(defaultValue = "8") int size) {
+        return tradeService.getPagedTrades(page, size);
     }
 }
