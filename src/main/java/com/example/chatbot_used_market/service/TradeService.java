@@ -2,6 +2,7 @@ package com.example.chatbot_used_market.service;
 
 import com.example.chatbot_used_market.dto.TradeRequestDto;
 import com.example.chatbot_used_market.dto.TradeResponseDto;
+import com.example.chatbot_used_market.entity.Trade;
 import com.example.chatbot_used_market.entity.User;
 import org.springframework.data.domain.Page;
 
@@ -15,4 +16,6 @@ public interface TradeService {
     void deleteTrade(Long id);
     void incrementViewCount(Long id);
     Page<TradeResponseDto> getPagedTrades(int page, int size);
+    Trade findById(Long id);
+    boolean existsById(Long id);
 }

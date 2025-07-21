@@ -34,18 +34,19 @@ public class Trade {
     @Column(nullable = false)
     private Integer price;
 
-    private String tradeImgUrl;
-
     @Column(nullable = false)
     private String category;
 
     @Column(nullable = false)
     private String status;
 
+    @Column(name = "view_count")
     private Integer viewCount;
 
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @PrePersist

@@ -41,7 +41,6 @@ public class TradeServiceImpl implements TradeService {
         trade.setPrice(requestDto.getPrice());
         trade.setCategory(requestDto.getCategory());
         trade.setDescription(requestDto.getDescription());
-        trade.setTradeImgUrl(requestDto.getTradeImgUrl());
         trade.setSeller(seller);
         
         Trade savedTrade = tradeRepository.save(trade);
@@ -65,7 +64,6 @@ public class TradeServiceImpl implements TradeService {
         trade.setPrice(requestDto.getPrice());
         trade.setCategory(requestDto.getCategory());
         trade.setDescription(requestDto.getDescription());
-        trade.setTradeImgUrl(requestDto.getTradeImgUrl());
         
         Trade updatedTrade = tradeRepository.save(trade);
         return convertToResponseDto(updatedTrade);
@@ -104,11 +102,19 @@ public class TradeServiceImpl implements TradeService {
         responseDto.setPrice(trade.getPrice());
         responseDto.setCategory(trade.getCategory());
         responseDto.setDescription(trade.getDescription());
-        responseDto.setTradeImgUrl(trade.getTradeImgUrl());
         responseDto.setStatus(trade.getStatus());
         responseDto.setViewCount(trade.getViewCount());
         responseDto.setCreatedAt(trade.getCreatedAt());
         
         return responseDto;
+    }
+
+    @Override
+    public Trade findById(Long id) {
+        return tradeRepository.findById(id).orElse(null);
+    }
+
+    public boolean existsById(Long id){
+        return tradeRepository.existsById(id);
     }
 }
