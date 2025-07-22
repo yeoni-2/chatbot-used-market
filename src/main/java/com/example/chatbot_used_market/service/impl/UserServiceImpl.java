@@ -95,4 +95,18 @@ public class UserServiceImpl implements UserService {
     public User findByEmail(String email) {
         return userRepository.findByEmail(email).orElse(null);
     }
+
+    @Override
+    public boolean isLocationVerified(Long userId) {
+        if (userId == null) {
+            return false;
+        }
+        
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return false;
+        }
+        
+        return user.getPosition() != null;
+    }
 }

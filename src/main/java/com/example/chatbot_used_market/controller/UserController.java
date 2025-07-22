@@ -138,7 +138,9 @@ public class UserController {
     }
 
     @GetMapping("/users/{id}/locations")
-    public String userLocation(@PathVariable("id") Long targetUserId, HttpSession session, Model model){
+    public String userLocation(@PathVariable("id") Long targetUserId, 
+                              @RequestParam(value = "error", required = false) String error,
+                              HttpSession session, Model model){
         Long userId = (Long)session.getAttribute("loginUserId");
 
         if (targetUserId == null || !targetUserId.equals(userId)){
@@ -146,6 +148,11 @@ public class UserController {
         }
 
         model.addAttribute("loginUserId", userId);
+        
+        // error 파라미터 처리
+        if ("location_required".equals(error)) {
+            model.addAttribute("error", "게시글 작성을 위해 동네 인증이 필요합니다.");
+        }
 
         return "location";
     }

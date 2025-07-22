@@ -17,4 +17,5 @@ public interface UserService {
   User findByEmail(String email);
   Mono<String> googleGeocodingByLocation(String location);
   void updatePositionAndLocationById(Long id, Point point, String location);
+  boolean isLocationVerified(Long userId);
 }

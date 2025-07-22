@@ -4,6 +4,7 @@ import com.example.chatbot_used_market.dto.TradeRequestDto;
 import com.example.chatbot_used_market.dto.TradeResponseDto;
 import com.example.chatbot_used_market.dto.TradeStatusUpdateDto;
 import com.example.chatbot_used_market.service.TradeService;
+import com.example.chatbot_used_market.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,9 +21,11 @@ import java.util.List;
 public class TradeController {
 
     private final TradeService tradeService;
+    private final UserService userService;
 
-    public TradeController(TradeService tradeService) {
+    public TradeController(TradeService tradeService, UserService userService) {
         this.tradeService = tradeService;
+        this.userService = userService;
     }
 
     //거래글 목록 페이지
@@ -44,6 +47,10 @@ public class TradeController {
         model.addAttribute("trades", page.getContent());
         model.addAttribute("hasNext", !page.isLast());
         model.addAttribute("loginUserId", loginUserId);
+
+        // 동네인증 상태 추가
+        boolean isLocationVerified = loginUserId != null && userService.isLocationVerified(loginUserId);
+        model.addAttribute("isLocationVerified", isLocationVerified);
 
         // hasNickname 변수 추가 (기본값 false)
         model.addAttribute("hasNickname", false);
@@ -124,6 +131,12 @@ public class TradeController {
         if (loginUserId == null) {
             return "redirect:/login"; // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
         }
+
+        // 동네 인증 여부 확인
+        if (!userService.isLocationVerified(loginUserId)) {
+            return "redirect:/users/" + loginUserId + "/locations?error=location_required"; // 동네 인증이 필요한 경우 동네 인증 페이지로 리다이렉트
+        }
+
         return "write";
     }
 
@@ -137,6 +150,12 @@ public class TradeController {
         if (loginUserId == null) {
             return "redirect:/login"; // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
         }
+
+        // 동네 인증 여부 확인
+        if (!userService.isLocationVerified(loginUserId)) {
+            return "redirect:/users/" + loginUserId + "/locations?error=location_required"; // 동네 인증이 필요한 경우 동네 인증 페이지로 리다이렉트
+        }
+
         try {
             TradeResponseDto responseDto = tradeService.createTrade(requestDto, images, loginUserId);
             // 작성 완료 후 상세 페이지로 리다이렉트
