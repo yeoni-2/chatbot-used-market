@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>user profile</title>
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <script th:src="@{/js/header.js}"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      .mainContainer {
+        display: flex;
+        flex-direction: column;
+        width: 80%;
+        margin: 100px auto 0;
+        gap: 10px;
+      }
+
+      .mainContainer > div {
+        width: 100%;
+      }
+
+      .user-description-container {
+        display: flex;
+        justify-content: space-around;
+        flex-direction: row;
+      }
+
+      .user-description {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+      }
+
+      .user-description > div {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+      }
+
+      .user-description > div > p {
+        margin: 0;
+      }
+
+      .user-description label {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-right: 10px;
+      }
+
+      #verifyLocation, .review-btn {
+        padding: 5px 10px;
+        border: solid 2px #ff6f0e;
+        border-radius: 5px;
+        box-sizing: border-box;
+        color: #ff6f0e;
+        font-size: 1.1rem;
+        font-weight: 600;
+        background-color: #fff;
+        cursor: pointer;
+      }
+
+      .review-menu {
+        display: flex;
+
+      }
+
+      .review-menu > button {
+        width: 25%;
+        padding: 0;
+        border: 0;
+        background-color: #fff;
+        cursor: pointer;
+        font-size: 2rem;
+        font-weight: 700;
+      }
+
+      .reviews-written, .reviews-received, .trade-selling, .trade-completed {
+        display: flex;
+        align-items: center;
+        flex-direction: row;
+        justify-content: space-between;
+        border: solid 1px #a6a6a6;
+        border-radius: 8px;
+        box-sizing: border-box;
+        padding: 5px 10px;
+      }
+
+      .trade-selling, .trade-completed {
+        cursor: pointer;
+      }
+
+      .profile-img {
+        width: 250px;
+        height: 250px;
+        border-radius: 50%;
+      }
+
+      .trade-header {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .trade-title {
+        font-weight: 600;
+      }
+
+      .review-info-wrapper, .trade-info-wrapper, .review-trailer, .trade-trailer {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .review-location, .trade-location {
+        color: #a6a6a6;
+      }
+    </style>
+    <script>
+      function paintAllMenuBtn(){
+        const rReviewBtn = document.querySelector('#rReviewBtn');
+        const wReviewBtn = document.querySelector('#wReviewBtn');
+        const sTradeBtn = document.querySelector('#sTradeBtn');
+        const cTradeBtn = document.querySelector('#cTradeBtn');
+
+        rReviewBtn.style.color = '#a6a6a6';
+        wReviewBtn.style.color = '#a6a6a6';
+        sTradeBtn.style.color = '#a6a6a6';
+        cTradeBtn.style.color = '#a6a6a6';
+      }
+
+      function hideAllReviewAndTrade(){
+        const rReviews = document.querySelectorAll('.reviews-received');
+        const wReviews = document.querySelectorAll('.reviews-written');
+        const sTrades = document.querySelectorAll('.trade-selling');
+        const bTrades = document.querySelectorAll('.trade-completed');
+
+        for (let review of rReviews) review.style.display = 'none';
+        for (let review of wReviews) review.style.display = 'none';
+        for (let trade of sTrades) trade.style.display = 'none';
+        for (let trade of bTrades) trade.style.display = 'none';
+      }
+
+      function changeColor(btn, lists){
+        const mainColor = '#ff6f0e';
+
+        hideAllReviewAndTrade();
+        paintAllMenuBtn();
+        btn.style.color = mainColor;
+        for (let e of lists) e.style.display = 'flex';
+      }
+
+      function hosHandler(e){
+        if (e.target.id == 'rReviewBtn') changeColor(e.target, document.querySelectorAll('.reviews-received'));
+        else if (e.target.id == 'wReviewBtn') changeColor(e.target, document.querySelectorAll('.reviews-written'));
+        else if (e.target.id == 'sTradeBtn') changeColor(e.target, document.querySelectorAll('.trade-selling'));
+        else if (e.target.id == 'cTradeBtn') changeColor(e.target, document.querySelectorAll('.trade-completed'));
+      }
+
+      window.addEventListener('load', function (){
+        document.querySelector('#rReviewBtn').addEventListener('click', hosHandler);
+        document.querySelector('#wReviewBtn').addEventListener('click', hosHandler);
+        document.querySelector('#sTradeBtn').addEventListener('click', hosHandler);
+        document.querySelector('#cTradeBtn').addEventListener('click', hosHandler);
+      });
+    </script>
+  </head>
+  <body>
+    <div th:replace="~{header :: header}"></div>
+    <div class="mainContainer">
+      <div class="user-description-container">
+        <div class="profile-img-container">
+          <img class="profile-img" th:src="${#strings.isEmpty(user.getProfileImgUrl())} ? '/images/user.svg' : ${user.getProfileImgUrl()}" alt="user_profile_image">
+
+        </div>
+        <div class="user-description">
+          <div class="username-container">
+            <label for="username">사용자 이름 </label>
+            <p class="username" id="username" th:text="${#strings.isEmpty(user.getUsername())} ? '사용자 이름이 설정되지 않았습니다. 사용자 이름을 설정해주세요!' : ${user.getUsername()}"></p>
+          </div>
+          <div class="nickname-container">
+            <label for="nickname">닉네임 </label>
+            <p class="nickname" id="nickname" th:text="${#strings.isEmpty(user.getNickname())} ? '닉네임이 설정되지 않았습니다. 닉네임을 설정해주세요!' : ${user.getNickname()}"></p>
+          </div>
+          <div class="email-container">
+            <label for="email">이메일 </label>
+            <p class="email" id="email" th:text="${#strings.isEmpty(user.getEmail())} ? '이메일이 설정되지 않았습니다. 이메일을 설정해주세요!' : ${user.getEmail()}"></p>
+          </div>
+          <div class="location-container" th:if="${not #strings.isEmpty(user.getLocation())}">
+            <label for="location">사용자 위치 </label>
+            <p class="location" id="location" th:text="${user.getLocation()}"></p>
+          </div>
+          <div class="location" th:if="${#strings.isEmpty(user.getLocation())}">
+            <a th:href="@{/users/{userId}/locations(userId=${user.getId()})}">
+              <button id="verifyLocation">동네 인증</button>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="review-menu">
+        <button id="rReviewBtn" style="color: #ff6f0e;">받은 리뷰</button>
+        <button id="wReviewBtn" style="color: #a6a6a6;">작성한 리뷰</button>
+        <button id="sTradeBtn" style="color: #a6a6a6;">판매중 상품</button>
+        <button id="cTradeBtn" style="color: #a6a6a6;">거래완료 상품</button>
+      </div>
+
+      <div class="reviews-received" th:if="${#lists.size(receivedReviews)==0}" style="font-size: 1.2rem; font-weight: 600;">no reviews received</div>
+      <div class="reviews-received" th:if="${#lists.size(receivedReviews)>0}" th:each="review: ${receivedReviews}">
+        <div class="review-header">
+          <div class="trade-title" th:text="${review.getTrade().getTitle()}"></div>
+          <div class="review-info-wrapper">
+            <div class="trade-price" th:text="${review.getTrade().getPrice()+'원'}"></div>
+            <div class="review-rating" th:text="${review.getRating()+'점'}"></div>
+          </div>
+        </div>
+        <div class="review-content" th:text="${review.getContent()}"></div>
+        <div class="review-trailer">
+          <div class="review-created-at" th:text="${review.getCreatedAt()}"></div>
+        </div>
+      </div>
+
+      <div style="display: none; font-size: 1.2rem; font-weight: 600;" class="reviews-written" th:if="${#lists.size(writtenReviews)==0}">no reviews written</div>
+      <div style="display: none;" class="reviews-written" th:if="${#lists.size(writtenReviews)>0}" th:each="review: ${writtenReviews}">
+        <div class="review-header">
+          <div class="trade-title" th:text="${review.getTrade().getTitle()}"></div>
+          <div class="review-info-wrapper">
+            <div class="trade-price" th:text="${review.getTrade().getPrice()}"></div>
+            <div class="review-rating" th:text="${review.getRating()+'점'}"></div>
+          </div>
+        </div>
+        <div class="review-content" th:text="${review.getContent()}"></div>
+        <div class="review-trailer">
+          <div class="review-created-at" th:text="${review.getCreatedAt()}"></div>
+        </div>
+      </div>
+
+      <div style="display: none; font-size: 1.2rem; font-weight: 600;" class="trade-selling" th:if="${sellingTrades==null || #lists.size(sellingTrades)==0}">no trades selling</div>
+      <div style="display: none;" class="trade-selling" th:if="${#lists.size(sellingTrades)>0}" th:each="trade: ${sellingTrades}" th:onclick="|location.href='@{/trades/{tradeId}(tradeId=${trade.getId()})}'|">
+        <div class="trade-header">
+          <div class="trade-title" th:text="${trade.getTitle()}"></div>
+          <div class="trade-info-wrapper">
+            <div class="trade-location" th:text="${trade.getSeller().getLocation() ?: '위치 정보 없음'}"></div>
+            <div class="trade-price" th:text="${trade.getPrice()+'원'}"></div>
+          </div>
+        </div>
+        <div class="trade-trailer">
+          <div class="trade-created-at" th:text="${#temporals.format(trade.getCreatedAt(), 'yyyy/MM/dd')}"></div>
+        </div>
+      </div>
+
+      <div style="display: none; font-size: 1.2rem; font-weight: 600;" class="trade-completed" th:if="${completedTrades==null || #lists.size(completedTrades)==0}">no trades completed</div>
+      <div style="display: none;" class="trade-completed" th:if="${#lists.size(completedTrades)>0}" th:each="trade: ${completedTrades}">
+        <div class="trade-header">
+          <div class="trade-title" th:text="${trade.getTitle()}"></div>
+          <div class="trade-info-wrapper">
+            <div class="trade-location" th:text="${trade.getSeller().getLocation() ?: '위치 정보 없음'}"></div>
+            <div class="trade-price" th:text="${trade.getPrice()+'원'}"></div>
+          </div>
+        </div>
+        <div class="trade-trailer">
+          <a th:if="${!trade.isWritten()}" th:href="@{/reviews?trade_id={tradeId}(tradeId=${trade.getId()})}">
+            <button class="review-btn">리뷰 남기기</button>
+          </a>
+          <div class="trade-created-at" th:text="${#temporals.format(trade.getCreatedAt(), 'yyyy/MM/dd')}"></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

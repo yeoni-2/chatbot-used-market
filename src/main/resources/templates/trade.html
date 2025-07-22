@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>거래 페이지</title>
+  <link rel="stylesheet" th:href="@{/css/header.css}">
+  <script th:src="@{/js/header.js}"></script>
+
+  <script th:inline="javascript">
+    // 사용자 상태 정보
+    const loginUserId = /*[[${loginUserId}]]*/ null;
+    const isLocationVerified = /*[[${isLocationVerified}]]*/ false;
+
+    // 글쓰기 버튼 클릭 처리
+    function handleWriteClick(event) {
+      event.preventDefault();
+      
+      if (loginUserId === null) {
+        alert('로그인 후 게시글을 작성할 수 있습니다.');
+        location.href = '/login';
+        return;
+      }
+      
+      if (!isLocationVerified) {
+        alert('동네인증 완료 후 게시글을 작성해주세요.');
+        location.href = `/users/${loginUserId}/locations?error=location_required`;
+        return;
+      }
+      
+      // 동네인증 완료된 사용자는 글쓰기 페이지로 이동
+      location.href = '/trades/write';
+    }
+
+    // 닉네임 설정 팝업 쿠키
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(";").shift();
+    }
+
+    function setCookie(name, value, days) {
+      const date = new Date();
+      date.setDate(date.getDate() + days);
+      document.cookie = `${name}=${value}; path=/; expires=${date.toUTCString()}`;
+    }
+
+    window.onload = function () {
+      const hasNickname = /*[[${hasNickname}]]*/ false;
+      const alertShown = getCookie("nicknameAlertShown");
+
+      if (!hasNickname && !alertShown) {
+        alert("닉네임은 프로필 페이지에서 설정 가능합니다.");
+        setCookie("nicknameAlertShown", "true", 7);
+      }
+
+      let page = 1;
+      let isLoading = false;
+      let hasNext = /*[[${hasNext}]]*/ false;
+
+      const observerTarget = document.getElementById("scroll-trigger");
+
+      const observer = new IntersectionObserver(async (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && !isLoading && hasNext) {
+          isLoading = true;
+          try {
+            const res = await fetch(`/trades/api?page=${page}&size=8`);
+            const data = await res.json();
+
+              data.content.forEach(trade => {
+                const card = document.createElement("div");
+                card.className = "trade-card";
+                card.onclick = () => location.href = `/trades/${trade.id}`;
+
+                // 이미지 처리 - 초기 로드와 동일한 구조로 수정
+                const hasImage = trade.imageUrls && trade.imageUrls.length > 0;
+                const imageHtml = hasImage
+                  ? `<img src="${trade.imageUrls[0]}" alt="상품 이미지" />`
+                  : `<span>이미지 없음</span>`;
+
+                card.innerHTML = `
+                  <div class="trade-image">
+                    ${imageHtml}
+                  </div>
+                  <div class="trade-content">
+                    <h3 class="trade-title">${trade.title}</h3>
+                    <div class="trade-price">${trade.price} 원</div>
+                    <div class="trade-category">${trade.category}</div>
+                    <div class="trade-location">${trade.sellerLocation || '위치 정보 없음'}</div>
+                    <div class="trade-meta">
+                      <div class="trade-views">조회 ${trade.viewCount}</div>
+                      <div class="trade-time">${trade.createdAt.substring(5, 10).replace('-', '월 ') + '일'}</div>
+                    </div>
+                  </div>
+                `;
+                document.querySelector(".trades-grid").appendChild(card);
+              });
+
+            hasNext = !data.last;
+            page++;
+          } catch (e) {
+            console.error(e);
+          } finally {
+            isLoading = false;
+          }
+        }
+      }, {
+        root: null,
+        rootMargin: "0px",
+        threshold: 1.0
+      });
+
+      observer.observe(observerTarget);
+    };
+  </script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #ffffff;
+      color: #333;
+    }
+
+    .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 80px;
+    }
+
+    /* 상단 헤더 영역 */
+    .hero-section {
+      width: 100%;
+      background-color: #fffae0;
+      margin-bottom: 60px;
+      padding: 40px 0;
+    }
+
+    .hero-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 70px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .hero-content {
+      flex: 1;
+    }
+
+    .hero-title {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 16px;
+      line-height: 1.2;
+    }
+
+    .hero-subtitle {
+      font-size: 1.1rem;
+      color: #666;
+      margin-bottom: 8px;
+    }
+
+    .hero-description {
+      font-size: 1rem;
+      color: #888;
+    }
+
+    .hero-illustration {
+      flex: 0 0 300px;
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .hero-illustration img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    /* 섹션 제목 */
+    .section-title {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .trades-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .trade-card {
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      cursor: pointer;
+      border: 1px solid #f0f0f0;
+    }
+
+    .trade-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .trade-image {
+      width: 100%;
+      aspect-ratio: 1;
+      background-color: #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+      font-size: 0.9rem;
+    }
+
+    .trade-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .trade-content {
+      padding: 16px;
+    }
+
+    .trade-title {
+      font-size: 1rem;
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 4px;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .trade-price {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 4px;
+    }
+
+    .trade-category {
+      font-size: 0.85rem;
+      color: #999;
+      margin-bottom: 2px;
+    }
+
+      .trade-location {
+        font-size: 0.85rem;
+        color: #999;
+        margin-bottom: 2px;
+      }
+
+      .trade-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+    .trade-views {
+      font-size: 0.8rem;
+      color: #898a93;
+    }
+
+    .trade-time {
+      font-size: 0.8rem;
+      color: #898a93;
+    }
+
+    .no-trades {
+      text-align: center;
+      padding: 80px 20px;
+      color: #999;
+    }
+
+    .no-trades h3 {
+      font-size: 1.3rem;
+      margin-bottom: 12px;
+      color: #666;
+    }
+
+    .no-trades p {
+      font-size: 1rem;
+      color: #999;
+    }
+
+    /* 플로팅 버튼 스타일 */
+    .floating-btn {
+      position: fixed;
+      top: 50%;
+      right: 30px;
+      transform: translateY(-50%);
+      width: 70px;
+      height: 70px;
+      background-color: #ff6f0e;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      font-size: 0.7rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(255, 111, 14, 0.3);
+      transition: all 0.2s ease;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      line-height: 1.1;
+      text-align: center;
+      word-break: keep-all;
+    }
+
+    .floating-btn:hover {
+      background-color: #e55a00;
+      transform: translateY(-50%) scale(1.03);
+      box-shadow: 0 6px 16px rgba(255, 111, 14, 0.4);
+    }
+
+    /* 반응형 디자인 */
+    @media (max-width: 1024px) {
+      .main-container {
+        padding: 20px 16px;
+      }
+
+      .hero-container {
+        flex-direction: column;
+        text-align: center;
+        padding: 0 16px;
+      }
+
+      .hero-section {
+        margin-bottom: 40px;
+      }
+
+      .hero-illustration {
+        margin-top: 30px;
+        flex: none;
+        width: 100%;
+        max-width: 400px;
+      }
+
+      .trades-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .hero-container {
+        padding: 0 20px;
+      }
+
+      .hero-title {
+        font-size: 2rem;
+      }
+
+      .trades-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+      }
+
+      .trade-content {
+        padding: 12px;
+      }
+
+      .floating-btn {
+        top: 50%;
+        right: 20px;
+        transform: translateY(-50%);
+        width: 50px;
+        height: 50px;
+        font-size: 0.5rem;
+        line-height: 1.1;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero-container {
+        padding: 0 16px;
+      }
+
+      .hero-title {
+        font-size: 1.6rem;
+      }
+
+      .trades-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      .trade-content {
+        padding: 10px;
+      }
+
+      .trade-title {
+        font-size: 0.9rem;
+      }
+
+      .trade-price {
+        font-size: 1rem;
+      }
+
+      .floating-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 0.45rem;
+        line-height: 1.1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div th:replace="~{header :: header}"></div>
+
+<div style="margin-top: 60px">
+  <!-- 상단 헤더 영역 -->
+  <div class="hero-section">
+    <div class="hero-container">
+      <div class="hero-content">
+        <h1 class="hero-title">믿을만한<br />이웃 간 중고거래</h1>
+        <p class="hero-subtitle">동네 주민들과 가깝고 따뜻한 거래를</p>
+        <p class="hero-description">지금 경험해보세요.</p>
+      </div>
+      <div class="hero-illustration">
+        <img th:src="@{/images/header-image.svg}" alt="Hero Illustration" />
+      </div>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <!-- 거래 섹션 -->
+    <h2 class="section-title">중고거래 인기매물</h2>
+
+    <div th:if="${#lists.isEmpty(trades)}" class="no-trades">
+      <h3>등록된 거래글이 없습니다</h3>
+      <p>첫 번째 거래글을 작성해보세요!</p>
+    </div>
+
+        <div th:if="${!#lists.isEmpty(trades)}" class="trades-grid">
+          <div th:each="trade : ${trades}" class="trade-card" th:onclick="|location.href='/trades/' + ${trade.id}|">
+            <div class="trade-image">
+              <img th:if="${!#lists.isEmpty(trade.imageUrls)}" th:src="${trade.imageUrls[0]}" alt="상품 이미지" />
+              <span th:if="${#lists.isEmpty(trade.imageUrls)}">이미지 없음</span>
+            </div>
+            <div class="trade-content">
+              <h3 class="trade-title" th:text="${trade.title}">제목</h3>
+              <div class="trade-price" th:text="${trade.price + '원'}">가격</div>
+              <div class="trade-category" th:text="${trade.category}">카테고리</div>
+              <div class="trade-location" th:text="${trade.sellerLocation != null ? trade.sellerLocation : '위치 정보 없음'}">위치</div>
+              <div class="trade-meta">
+                <div class="trade-views" th:text="'조회 ' + ${trade.viewCount}">조회수</div>
+                <div class="trade-time" th:text="${#temporals.format(trade.createdAt, 'M월 d일')}">시간</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+    <!-- 무한스크롤 트리거 -->
+    <div id="scroll-trigger" style="height: 1px;"></div>
+  </div>
+
+  <!-- 플로팅 버튼 -->
+  <a href="#" class="floating-btn" onclick="handleWriteClick(event)" title="거래글쓰기"> 거래글쓰기 </a>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>채팅</title>
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <script th:src="@{/js/header.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/chat.css}">
+</head>
+<body>
+<div th:replace="~{header :: header}"></div>
+<div class="chat-container">
+    <div id="left-frame">
+        <h1>내 채팅 목록</h1>
+        <div id="chatroom-list"></div>
+    </div>
+    <div id="right-frame">
+        <div id="trade-header"></div>
+        <div id="message-container">
+            <div id="scroll-trigger" style="height: 1px;"></div>
+            <div id="message-list">
+                <p>채팅방을 선택해주세요.</p>
+            </div>
+        </div>
+        <form id="message-form" style="display: none;">
+            <input type="text" id="message-input" placeholder="메시지를 입력하세요...">
+            <button type="submit">전송</button>
+        </form>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const loginUserId = /*[[${loginUserId}]]*/ null;
+</script>
+<script th:src="@{/js/chat.js}"></script>
+</body>
+</html>
