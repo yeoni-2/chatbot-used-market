@@ -60,9 +60,30 @@ public class TradeController {
 
     //메인 페이지 거래글 목록
     @GetMapping("/main")
-    public String mainPage(Model model) {
-        Page<TradeResponseDto> page = tradeService.getPagedTrades(0, 8);
+    public String mainPage(Model model, HttpSession session) {
+        // 로그인된 사용자 ID 조회
+        Long loginUserId = (Long) session.getAttribute("loginUserId");
+
+        // 위치 기반 필터링 적용 (로그인했고 위치 인증된 사용자)
+        Page<TradeResponseDto> page;
+        if (loginUserId != null) {
+            // 사용자가 위치 인증했으면 5km 반경 내 게시글만 조회
+            page = tradeService.getNearbyTradesWithPaginationByUserId(loginUserId, PageRequest.of(0, 8));
+        } else {
+            // 비로그인 사용자는 전체 게시글 조회
+            page = tradeService.getPagedTrades(0, 8);
+        }
+
         model.addAttribute("trades", page.getContent());
+        model.addAttribute("hasNext", !page.isLast());
+        model.addAttribute("loginUserId", loginUserId);
+
+        // 동네인증 상태 추가
+        boolean isLocationVerified = loginUserId != null && userService.isLocationVerified(loginUserId);
+        model.addAttribute("isLocationVerified", isLocationVerified);
+
+        // hasNickname 변수 추가 (기본값 false)
+        model.addAttribute("hasNickname", false);
         return "main";
     }
 
