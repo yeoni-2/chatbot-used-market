@@ -23,20 +23,20 @@ import java.util.List;
 
 @Service
 public class TradeServiceImpl implements TradeService {
-    
+
     private final TradeRepository tradeRepository;
     private final UserRepository userRepository;
     private final TradeImageRepository tradeImageRepository;
     private final S3Service s3Service;
 
     public TradeServiceImpl(TradeRepository tradeRepository, UserRepository userRepository,
-                           TradeImageRepository tradeImageRepository, S3Service s3Service) {
+                            TradeImageRepository tradeImageRepository, S3Service s3Service) {
         this.tradeRepository = tradeRepository;
         this.userRepository = userRepository;
         this.tradeImageRepository = tradeImageRepository;
         this.s3Service = s3Service;
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public List<TradeResponseDto> getAllTrades() {
@@ -45,7 +45,7 @@ public class TradeServiceImpl implements TradeService {
                 .map(this::convertToResponseDto)
                 .toList();
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public List<TradeResponseDto> searchTradesByKeyword(String keyword) {
@@ -128,7 +128,7 @@ public class TradeServiceImpl implements TradeService {
             throw e;
         }
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public TradeResponseDto getTradeById(Long id) {
@@ -136,13 +136,13 @@ public class TradeServiceImpl implements TradeService {
                 .orElseThrow(() -> new RuntimeException("Trade not found with id: " + id));
         return convertToResponseDto(trade);
     }
-    
+
     @Override
     @Transactional
     public TradeResponseDto updateTrade(Long id, TradeRequestDto requestDto, List<MultipartFile> images, User seller) {
         Trade trade = tradeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Trade not found with id: " + id));
-        
+
         // 기존 이미지 정보 백업
         List<TradeImage> existingImages = tradeImageRepository.findByTradeId(id);
         List<String> existingImageUrls = existingImages.stream()
@@ -189,13 +189,13 @@ public class TradeServiceImpl implements TradeService {
             throw new RuntimeException("거래글 수정에 실패했습니다: " + e.getMessage(), e);
         }
     }
-    
+
     @Override
     @Transactional
     public void deleteTrade(Long id) {
         Trade trade = tradeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Trade not found with id: " + id));
-        
+
         // 연관된 이미지들 삭제
         List<TradeImage> images = tradeImageRepository.findByTradeId(id);
         List<String> imageUrls = images.stream()
@@ -211,13 +211,13 @@ public class TradeServiceImpl implements TradeService {
         // 거래글 삭제
         tradeRepository.delete(trade);
     }
-    
+
     @Override
     @Transactional
     public void incrementViewCount(Long id) {
         Trade trade = tradeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Trade not found with id: " + id));
-        
+
         trade.setViewCount(trade.getViewCount() + 1);
         tradeRepository.save(trade);
     }
@@ -339,7 +339,7 @@ public class TradeServiceImpl implements TradeService {
         responseDto.setChatCount(0); // 임시로 0으로 설정
 
         responseDto.setCreatedAt(trade.getCreatedAt());
-        
+
         return responseDto;
     }
 
@@ -370,5 +370,10 @@ public class TradeServiceImpl implements TradeService {
         Trade updatedTrade = tradeRepository.save(trade);
 
         return convertToResponseDto(updatedTrade);
+    }
+
+    @Override
+    public List<Trade> findTradesByUserIdAndStatus(Long userId, String status){
+        return tradeRepository.findByUserIdAndStatus(userId, status);
     }
 }

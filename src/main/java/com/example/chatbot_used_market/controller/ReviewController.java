@@ -8,8 +8,6 @@ import com.example.chatbot_used_market.service.TradeService;
 import com.example.chatbot_used_market.service.impl.UserServiceImpl;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -36,7 +34,7 @@ public class ReviewController {
       return "redirect:/trades";
     }
 
-    if (!trade.getStatus().equals("판매완료")){
+    if (!trade.getStatus().equals("거래완료")){
       return "redirect:/trades";
     }
 

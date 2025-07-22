@@ -4,6 +4,8 @@ import com.example.chatbot_used_market.entity.Trade;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,4 +27,7 @@ public interface TradeRepository extends JpaRepository<Trade, Long> {
     Page<Trade> findByTitleContainingAndCategoryAndStatusOrderByViewCountDesc(String keyword, String category, String status, Pageable pageable);
 
     Page<Trade> findByStatus(String status, Pageable pageable);
+
+    @Query(value = "SELECT * FROM trades WHERE (seller_id=:userId OR buyer_id=:userId) AND status=:status", nativeQuery = true)
+    List<Trade> findByUserIdAndStatus(@Param("userId") Long userId, @Param("status") String status);
 }

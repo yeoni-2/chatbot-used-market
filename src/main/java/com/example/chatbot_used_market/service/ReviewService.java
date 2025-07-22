@@ -15,4 +15,5 @@ public interface ReviewService {
   List<Review> findWrittenReviewsByUserId(Long userId);
   void deleteReviewById(Long id);
   boolean isAuthor(Long reviewId, User user);
+  boolean existsByTradeIdAndReviewerId(Long tradeId, Long reviewerId);
 }

@@ -21,15 +21,15 @@ import java.util.List;
 
 @Controller
 public class TradeController {
-    
+
     private final TradeService tradeService;
     private final UserRepository userRepository;
-    
+
     public TradeController(TradeService tradeService, UserRepository userRepository) {
         this.tradeService = tradeService;
         this.userRepository = userRepository;
     }
-    
+
     //거래글 목록 페이지
     @GetMapping("/trades")
     public String tradeList(Model model, HttpSession session) {
@@ -37,11 +37,11 @@ public class TradeController {
 
         model.addAttribute("trades", page.getContent());
         model.addAttribute("hasNext", !page.isLast());
-        
+
         // 로그인된 사용자 ID 전달
         Long loginUserId = (Long) session.getAttribute("loginUserId");
         model.addAttribute("loginUserId", loginUserId);
-        
+
         // hasNickname 변수 추가 (기본값 false)
         model.addAttribute("hasNickname", false);
 
@@ -55,7 +55,7 @@ public class TradeController {
         model.addAttribute("trades", page.getContent());
         return "main";
     }
-    
+
     // 검색 기능
     @GetMapping("/trades/search")
     public String searchTrades(@RequestParam String keyword,
@@ -109,7 +109,7 @@ public class TradeController {
         }
         return "write";
     }
-    
+
     // 거래글 작성 처리
     @PostMapping("/trades")
     public String createTrade(@ModelAttribute TradeRequestDto requestDto,
@@ -120,33 +120,35 @@ public class TradeController {
         if (loginUserId == null) {
             return "redirect:/login"; // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
         }
-        
-        User seller = userRepository.findById(loginUserId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
+//        User seller = userRepository.findById(loginUserId)
+//                .orElseThrow(() -> new RuntimeException("User not found"));
+        User seller = userRepository.findById(loginUserId).orElse(null);
+        if (seller==null) return "redirect:/logout";
+
         TradeResponseDto responseDto = tradeService.createTrade(requestDto, images, seller);
-        
+
         // 작성 완료 후 상세 페이지로 리다이렉트
         return "redirect:/trades/" + responseDto.getId();
     }
-    
+
     // 거래글 상세 페이지
     @GetMapping("/trades/{id}")
     public String tradeDetail(@PathVariable Long id, Model model, HttpSession session) {
         // 조회수 증가
         tradeService.incrementViewCount(id);
-        
+
         TradeResponseDto trade = tradeService.getTradeById(id);
         model.addAttribute("trade", trade);
-        
+
         // 로그인된 사용자가 작성자인지 확인
         Long loginUserId = (Long) session.getAttribute("loginUserId");
         boolean isAuthor = loginUserId != null && loginUserId.equals(trade.getSellerId());
         model.addAttribute("isAuthor", isAuthor);
-        
+
         return "trade_post";
     }
-    
+
     // 거래글 수정 페이지
     @GetMapping("/trades/{id}/edit")
     public String editTradeForm(@PathVariable Long id, Model model, HttpSession session) {
@@ -155,17 +157,17 @@ public class TradeController {
         if (loginUserId == null) {
             return "redirect:/login"; // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
         }
-        
+
         // 작성자 확인
         TradeResponseDto trade = tradeService.getTradeById(id);
         if (!loginUserId.equals(trade.getSellerId())) {
             return "redirect:/trades/" + id; // 작성자가 아니면 상세 페이지로 리다이렉트
         }
-        
+
         model.addAttribute("trade", trade);
         return "write";
     }
-    
+
     // 거래글 수정 처리
     @PostMapping("/trades/{id}")
     public String updateTradePost(@PathVariable Long id, @ModelAttribute TradeRequestDto requestDto,
@@ -176,22 +178,22 @@ public class TradeController {
         if (loginUserId == null) {
             return "redirect:/login"; // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
         }
-        
+
         // 작성자 확인
         TradeResponseDto existingTrade = tradeService.getTradeById(id);
         if (!loginUserId.equals(existingTrade.getSellerId())) {
             return "redirect:/trades/" + id; // 작성자가 아니면 상세 페이지로 리다이렉트
         }
-        
+
         // 로그인된 사용자를 판매자로 설정
         User seller = userRepository.findById(loginUserId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
+
         TradeResponseDto responseDto = tradeService.updateTrade(id, requestDto, images, seller);
         // 수정 완료 후 상세 페이지로 리다이렉트
         return "redirect:/trades/" + responseDto.getId();
     }
-    
+
     // 거래글 삭제
     @GetMapping("/trades/{id}/delete")
     public String deleteTrade(@PathVariable Long id, HttpSession session) {
@@ -200,13 +202,13 @@ public class TradeController {
         if (loginUserId == null) {
             return "redirect:/login"; // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
         }
-        
+
         // 작성자 확인
         TradeResponseDto existingTrade = tradeService.getTradeById(id);
         if (!loginUserId.equals(existingTrade.getSellerId())) {
             return "redirect:/trades/" + id; // 작성자가 아니면 상세 페이지로 리다이렉트
         }
-        
+
         tradeService.deleteTrade(id);
         // 삭제 완료 후 목록 페이지로 리다이렉트
         return "redirect:/trades";

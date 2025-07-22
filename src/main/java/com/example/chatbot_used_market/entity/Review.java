@@ -18,21 +18,24 @@ public class Review {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @NotNull
-  @JoinColumn(name = "reviewer")
+  @JoinColumn(name = "reviewer_id")
   private User reviewer;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @NotNull
-  @JoinColumn(name = "reviewee")
+  @JoinColumn(name = "reviewee_id")
   private User reviewee;
 
   @ManyToOne
   @NotNull
+  @JoinColumn(name = "trade_id")
   private Trade trade;
 
   @NotNull
+  @Column(name = "rating")
   private Integer rating;
 
+  @Column(name = "content")
   private String content;
 
   @Column(name = "created_at")
