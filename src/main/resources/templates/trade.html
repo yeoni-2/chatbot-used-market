@@ -7,6 +7,30 @@
   <script th:src="@{/js/header.js}"></script>
 
   <script th:inline="javascript">
+    // 사용자 상태 정보
+    const loginUserId = /*[[${loginUserId}]]*/ null;
+    const isLocationVerified = /*[[${isLocationVerified}]]*/ false;
+
+    // 글쓰기 버튼 클릭 처리
+    function handleWriteClick(event) {
+      event.preventDefault();
+      
+      if (loginUserId === null) {
+        alert('로그인 후 게시글을 작성할 수 있습니다.');
+        location.href = '/login';
+        return;
+      }
+      
+      if (!isLocationVerified) {
+        alert('동네인증 완료 후 게시글을 작성해주세요.');
+        location.href = `/users/${loginUserId}/locations?error=location_required`;
+        return;
+      }
+      
+      // 동네인증 완료된 사용자는 글쓰기 페이지로 이동
+      location.href = '/trades/write';
+    }
+
     // 닉네임 설정 팝업 쿠키
     function getCookie(name) {
       const value = `; ${document.cookie}`;
@@ -456,7 +480,7 @@
   </div>
 
   <!-- 플로팅 버튼 -->
-  <a href="/trades/write" class="floating-btn" title="거래글쓰기"> 거래글쓰기 </a>
+  <a href="#" class="floating-btn" onclick="handleWriteClick(event)" title="거래글쓰기"> 거래글쓰기 </a>
 </div>
 </div>
 </body>
