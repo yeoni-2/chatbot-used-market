@@ -202,7 +202,7 @@ function loadTradeHeader(chatroomId) {
             let buttonHtml = '';
 
             if (loginUserId === details.sellerId && details.tradeStatus === '판매중') {
-                buttonHtml = `<button class="trade-confirm-btn" data-trade-id="${details.tradeId}">거래확정하기</button>`;
+                buttonHtml = `<button class="trade-confirm-btn" data-trade-id="${details.tradeId}" data-buyer-id="${details.buyerId}">거래확정하기</button>`;
             } else if (details.tradeStatus === '거래완료') {
                 buttonHtml = `<button class="trade-complete-btn" disabled>거래완료</button>`;
             }
@@ -227,12 +227,17 @@ function loadTradeHeader(chatroomId) {
 
 function handleTradeConfirm(event) {
     const tradeId = event.target.dataset.tradeId;
-    if (!confirm('거래를 확정하시겠습니까?')) return;
+    const buyerId = event.target.dataset.buyerId;
+
+    if (!confirm('거래를 확정하시겠습니까?\n(경고: 확정 후 취소는 불가능)')) return;
 
     fetch(`/trades/${tradeId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: '거래완료' })
+        body: JSON.stringify({
+            status: '거래완료',
+            buyerId: buyerId
+        })
     })
     .then(response => {
         if (!response.ok) throw new Error('상태 변경 실패');

@@ -218,7 +218,7 @@ public class TradeController {
         if (loginUserId == null)
             return ResponseEntity.status(401).build();
 
-        TradeResponseDto updatedTrade = tradeService.updateTradeStatus(id, requestDto.getStatus(), loginUserId);
+        TradeResponseDto updatedTrade = tradeService.updateTradeStatus(id, requestDto.getStatus(), requestDto.getBuyerId(), loginUserId);
 
         return ResponseEntity.ok(updatedTrade);
     }
