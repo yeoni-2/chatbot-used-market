@@ -35,7 +35,7 @@ public interface TradeRepository extends JpaRepository<Trade, Long> {
             "JOIN users u ON t.seller_id = u.id " +
             "WHERE t.status = :status " +
             "AND u.position IS NOT NULL " +
-            "AND ST_DWithin(u.position, :userPosition, 5000) " +
+            "AND ST_DWithin(u.position::geography, :userPosition, 5000) " +
             "ORDER BY t.view_count DESC",
             nativeQuery = true)
     List<Trade> findNearbyTradesOrderByViewCountDesc(@Param("userPosition") Point userPosition,
@@ -45,7 +45,7 @@ public interface TradeRepository extends JpaRepository<Trade, Long> {
             "JOIN users u ON t.seller_id = u.id " +
             "WHERE t.status = :status " +
             "AND u.position IS NOT NULL " +
-            "AND ST_DWithin(u.position, :userPosition, 5000) " +
+            "AND ST_DWithin(u.position::geography, :userPosition, 5000) " +
             "ORDER BY t.view_count DESC",
             countQuery = "SELECT count(t.*) FROM trades t " +
                         "JOIN users u ON t.seller_id = u.id " +
@@ -63,7 +63,7 @@ public interface TradeRepository extends JpaRepository<Trade, Long> {
             "WHERE t.title LIKE CONCAT('%', :keyword, '%') " +
             "AND t.status = :status " +
             "AND u.position IS NOT NULL " +
-            "AND ST_DWithin(u.position, :userPosition, 5000) " +
+            "AND ST_DWithin(u.position::geography, :userPosition, 5000) " +
             "ORDER BY t.view_count DESC",
             countQuery = "SELECT count(t.*) FROM trades t " +
                         "JOIN users u ON t.seller_id = u.id " +
@@ -84,7 +84,7 @@ public interface TradeRepository extends JpaRepository<Trade, Long> {
             "AND t.category = :category " +
             "AND t.status = :status " +
             "AND u.position IS NOT NULL " +
-            "AND ST_DWithin(u.position, :userPosition, 5000) " +
+            "AND ST_DWithin(u.position::geography, :userPosition, 5000) " +
             "ORDER BY t.view_count DESC",
             countQuery = "SELECT count(t.*) FROM trades t " +
                         "JOIN users u ON t.seller_id = u.id " +

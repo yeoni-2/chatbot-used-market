@@ -1,0 +1,33 @@
+SELECT id FROM USERS LIMIT 1;
+--DELETE FROM messages CASCADE;
+--DELETE FROM chatrooms CASCADE;
+--DELETE FROM reviews CASCADE;
+--DELETE FROM trades CASCADE;
+--DELETE FROM users CASCADE;
+--
+--ALTER SEQUENCE users_id_seq RESTART WITH 1;
+--ALTER SEQUENCE trades_id_seq RESTART WITH 1;
+--ALTER SEQUENCE reviews_id_seq RESTART WITH 1;
+--ALTER SEQUENCE chatrooms_id_seq RESTART WITH 1;
+--ALTER SEQUENCE messages_id_seq RESTART WITH 1;
+
+--INSERT INTO users (username, password, created_at)
+--VALUES
+--('asdf', 'asdf', NOW()),
+--('fdsa', 'fdsa', NOW()),
+--('hos', 'hos', NOW())
+--ON CONFLICT DO NOTHING;
+--
+--INSERT INTO trades (seller_id, buyer_id, title, description, price, category, status)
+--VALUES
+--(1, null, 'title1', 'desc1', 1, 'post', '판매중'),
+--(2, null, 'title2', 'desc2', 10, 'post', '판매중'),
+--(3, null, 'title3', 'desc3', 100, 'post', '판매중'),
+--(3, 1, 'title4', 'desc4', 1000, 'post', '판매완료')
+--ON CONFLICT DO NOTHING;
+--
+--INSERT INTO reviews (reviewer, reviewee, trade_id, rating, created_at)
+--VALUES
+--(1, 2, 4, 3, NOW()),
+--(2, 1, 4, 3, NOW())
+--ON CONFLICT DO NOTHING;
