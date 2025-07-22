@@ -44,7 +44,7 @@
 
             <th:block th:if="${session.loginUserId != null}">
               <form th:action="@{/chats/page}" method="get" class="button-form">
-                <button type="submit" class="chatBtn">채팅하기</button>
+                <button type="submit" class="chatBtn" id="header-chat-btn">채팅하기</button>
               </form>
 
               <form th:action="@{/users/{id}(id=${session.loginUserId})}" method="get" class="button-form">

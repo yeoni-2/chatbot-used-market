@@ -65,6 +65,7 @@ function loadChatrooms() {
 
             data.forEach(chatroom => {
                 const chatroomElement = document.createElement('div');
+                const unreadBadge = chatroom.unreadCount > 0 ? `<span class="unread-badge">${chatroom.unreadCount}</span>` : '';
 
                 chatroomElement.className = 'chatroom-item';
                 chatroomElement.innerHTML = `
@@ -76,7 +77,10 @@ function loadChatrooms() {
                             <span class="nickname">${chatroom.opponentNickname}</span>
                             <span class="time">${formatTime(chatroom.lastMessageTime)}</span>
                         </div>
-                        <div class="last-message">${chatroom.lastMessage}</div>
+                        <div class="last-message">
+                            ${chatroom.lastMessage}
+                            ${unreadBadge}
+                        </div>
                     </div>
                 `;
                 chatroomElement.dataset.chatroomId = chatroom.chatroomId;
