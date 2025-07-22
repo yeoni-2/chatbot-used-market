@@ -35,7 +35,12 @@ public class ChatServiceImpl implements ChatService {
     public Chatroom createOrGetChatroom(Long tradeId, Long buyerId) {
         Trade trade = tradeRepository.findById(tradeId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
+
         User seller = trade.getSeller();
+        if (seller.getId().equals(buyerId)) {
+            throw new IllegalArgumentException("자신이 올린 상품에 대해서는 채팅할 수 없습니다.");
+        }
+
         User buyer = userRepository.findById(buyerId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
