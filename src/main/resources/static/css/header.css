@@ -147,6 +147,18 @@
   text-decoration: none;
   cursor: pointer;
   background-color: #f5f5f5;
+  position: relative;
+}
+
+.chatBtn.new-message::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 8px;
+    height: 8px;
+    background-color: red;
+    border-radius: 50%;
 }
 
 .button-form {

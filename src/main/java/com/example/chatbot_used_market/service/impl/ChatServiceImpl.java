@@ -80,8 +80,9 @@ public class ChatServiceImpl implements ChatService {
                 .map(chatroom -> {
                     Message lastMessage = messageRepository.findTopByChatroomIdOrderByCreatedAtDesc(chatroom.getId()).orElse(null);
                     User opponentUser = chatroom.getSeller().getId().equals(userId) ? chatroom.getBuyer() : chatroom.getSeller();
+                    long unreadCount = messageRepository.countByChatroomIdAndSender_IdNotAndIsReadFalse(chatroom.getId(), userId);
 
-                    return new ChatroomListDto(chatroom, opponentUser, lastMessage);
+                    return new ChatroomListDto(chatroom, opponentUser, lastMessage, unreadCount);
                 })
                 .collect(Collectors.toList());
     }
@@ -91,5 +92,16 @@ public class ChatServiceImpl implements ChatService {
         Chatroom chatroom = chatroomRepository.findById(chatroomId)
                 .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
         return new ChatroomDetailDto(chatroom);
+    }
+
+    @Override
+    @Transactional
+    public void markMessagesAsRead(Long chatroomId, Long userId) {
+        messageRepository.markAsReadByChatroomAndUser(chatroomId, userId);
+    }
+
+    @Override
+    public long getUnreadMessageCount(Long userId) {
+        return messageRepository.countUnreadMessagesByUserId(userId);
     }
 }

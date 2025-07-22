@@ -16,4 +16,6 @@ public interface ChatService {
     Message createMessage(Long chatroomId, Long senderId, String content);
     List<ChatroomListDto> findMyChatrooms(Long userId);
     ChatroomDetailDto getChatroomDetails(Long chatroomId);
+    void markMessagesAsRead(Long chatroomId, Long userId);
+    long getUnreadMessageCount(Long userId);
 }
