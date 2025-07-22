@@ -39,6 +39,8 @@ application-postgresql.properties
 application-google-oauth2.properties
 application-google-geocoding.properties
 
+data.sql
+
 ### Test files (위치 기반 필터링 테스트 코드) ###
 src/test/java/com/example/chatbot_used_market/manual/
 src/test/java/com/example/chatbot_used_market/service/TradeServiceLocationTest.java
