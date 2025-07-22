@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Document</title>
+  </head>
+  <body>
+    <h2 th:if="${error != null}" th:text="${error}"></h2>
+    <a href="/trades">Trades page</a>
+  </body>
+</html>
