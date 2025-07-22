@@ -310,7 +310,6 @@ function sendRealtimeMessage() {
         const talkMessage = {
         type: 'TALK',
         chatroomId: currentChatroomId,
-        senderId: loginUserId,
         content: messageContent
         };
 

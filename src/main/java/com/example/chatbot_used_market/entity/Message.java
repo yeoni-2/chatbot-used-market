@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.LocalDateTime;
 
@@ -23,6 +24,10 @@ public class Message {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "is_read", nullable = false)
+    @ColumnDefault("false")
+    private boolean isRead;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id")
     private User sender;
@@ -36,5 +41,9 @@ public class Message {
         this.createdAt = LocalDateTime.now();
         this.sender = sender;
         this.chatroom = chatroom;
+    }
+
+    public void markAsRead() {
+        this.isRead = true;
     }
 }

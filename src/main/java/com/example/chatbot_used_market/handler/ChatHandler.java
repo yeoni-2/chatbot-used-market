@@ -34,19 +34,26 @@ public class ChatHandler extends TextWebSocketHandler {
         WebSocketMessage webSocketMessage = objectMapper.readValue(payload, WebSocketMessage.class);
 
         Long chatroomId = webSocketMessage.getChatroomId();
-        Set<WebSocketSession> sessions = chatRooms.get(chatroomId);
+
+        Long currentUserId = (Long) session.getAttributes().get("loginUserId");
+        if (currentUserId == null) return;
 
         if (webSocketMessage.getType() == WebSocketMessage.MessageType.JOIN) {
-            sessions = chatRooms.computeIfAbsent(chatroomId, key -> ConcurrentHashMap.newKeySet());
+            Set<WebSocketSession> sessions = chatRooms.computeIfAbsent(chatroomId, key -> ConcurrentHashMap.newKeySet());
             sessions.add(session);
             log.info("Joined room: chatroomId={}, session={}", chatroomId, session.getId());
+
+            chatService.markMessagesAsRead(chatroomId, currentUserId);
         }
 
-        if (webSocketMessage.getType() == WebSocketMessage.MessageType.TALK && sessions != null) {
-            Message savedMessage = chatService.createMessage(chatroomId, webSocketMessage.getSenderId(), webSocketMessage.getContent());
+        if (webSocketMessage.getType() == WebSocketMessage.MessageType.TALK) {
+            Message savedMessage = chatService.createMessage(chatroomId, currentUserId, webSocketMessage.getContent());
             MessageDto messageDto = new MessageDto(savedMessage);
 
-            sessions.parallelStream().forEach(s -> sendMessage(s, messageDto));
+            Set<WebSocketSession> sessions = chatRooms.get(chatroomId);
+            if (sessions != null) {
+                sessions.parallelStream().forEach(s -> sendMessage(s, messageDto));
+            }
         }
     }
 

@@ -92,4 +92,15 @@ public class ChatServiceImpl implements ChatService {
                 .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
         return new ChatroomDetailDto(chatroom);
     }
+
+    @Override
+    @Transactional
+    public void markMessagesAsRead(Long chatroomId, Long userId) {
+        messageRepository.markAsReadByChatroomAndUser(chatroomId, userId);
+    }
+
+    @Override
+    public long getUnreadMessageCount(Long userId) {
+        return messageRepository.countUnreadMessagesByUserId(userId);
+    }
 }

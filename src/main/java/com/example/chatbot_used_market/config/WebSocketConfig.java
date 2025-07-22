@@ -14,11 +14,13 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketConfigurer {
     private final ChatHandler chatHandler;
+    private final HttpHandshakeInterceptor handshakeInterceptor;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(chatHandler, "/ws/chat") // "/ws/chat" 경로로 요청이 오면
-                .setAllowedOrigins("*");     // 모든 도메인에서의 접속을 허용
+        registry.addHandler(chatHandler, "/ws/chat")
+                .addInterceptors(handshakeInterceptor)
+                .setAllowedOrigins("*");
     }
 
     @Bean
