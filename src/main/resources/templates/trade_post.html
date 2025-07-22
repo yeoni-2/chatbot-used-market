@@ -422,7 +422,7 @@
                 <span class="location" th:text="${trade.sellerLocation != null ? trade.sellerLocation : '위치 정보 없음'}">위치</span>
                 <span class="category" th:text="${trade.category}">카테고리</span>
               </div>
-              <button class="chat-btn" onclick="startChat()">채팅하기</button>
+              <button class="chat-btn" onclick="startChat()" th:if="${!isAuthor}">채팅하기</button>
             </div>
             <div class="divider"></div>
             <div class="title-price-section">
