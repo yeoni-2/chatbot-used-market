@@ -31,25 +31,3 @@ build/
 
 ### VS Code ###
 .vscode/
-
-### postgresql ###
-application-postgresql.properties
-
-### google API ###
-application-google-oauth2.properties
-application-google-geocoding.properties
-
-api.txt
-db.sql
-data.sql
-ERD.png
-feature.txt
-trade-post.png
-trade.png
-write.png
-
-### aws ###
-src/main/resources/application-aws.properties
-
-### ai-api ###
-src/main/resources/application-ai-api.properties
