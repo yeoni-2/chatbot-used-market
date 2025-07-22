@@ -4,6 +4,7 @@ import com.example.chatbot_used_market.dto.TradeRequestDto;
 import com.example.chatbot_used_market.dto.TradeResponseDto;
 import com.example.chatbot_used_market.entity.Trade;
 import com.example.chatbot_used_market.entity.User;
+import org.locationtech.jts.geom.Point;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +20,18 @@ public interface TradeService {
     // 페이지네이션을 지원하는 검색 메소드들
     Page<TradeResponseDto> searchTradesByKeywordWithPagination(String keyword, Pageable pageable);
     Page<TradeResponseDto> searchTradesByKeywordAndCategoryWithPagination(String keyword, String category, Pageable pageable);
+
+    // 위치 기반 조회 메서드들 (5km 반경)
+    List<TradeResponseDto> getNearbyTrades(Point userPosition);
+    Page<TradeResponseDto> getNearbyTradesWithPagination(Point userPosition, Pageable pageable);
+    Page<TradeResponseDto> searchNearbyTradesByKeyword(String keyword, Point userPosition, Pageable pageable);
+    Page<TradeResponseDto> searchNearbyTradesByKeywordAndCategory(String keyword, String category, Point userPosition, Pageable pageable);
+
+    // 사용자 ID를 받아서 위치 기반 조회하는 편의 메서드들
+    List<TradeResponseDto> getNearbyTradesByUserId(Long userId);
+    Page<TradeResponseDto> getNearbyTradesWithPaginationByUserId(Long userId, Pageable pageable);
+    Page<TradeResponseDto> searchNearbyTradesByKeywordAndUserId(String keyword, Long userId, Pageable pageable);
+    Page<TradeResponseDto> searchNearbyTradesByKeywordAndCategoryAndUserId(String keyword, String category, Long userId, Pageable pageable);
 
     // 기존 메서드 (하위 호환성)
     TradeResponseDto createTrade(TradeRequestDto requestDto, List<MultipartFile> images, User seller);

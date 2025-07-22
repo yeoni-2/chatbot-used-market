@@ -20,6 +20,7 @@ import org.springframework.data.domain.Sort;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.locationtech.jts.geom.Point;
 
 @Service
 public class TradeServiceImpl implements TradeService {
@@ -76,6 +77,98 @@ public class TradeServiceImpl implements TradeService {
     public Page<TradeResponseDto> searchTradesByKeywordAndCategoryWithPagination(String keyword, String category, Pageable pageable) {
         Page<Trade> trades = tradeRepository.findByTitleContainingAndCategoryAndStatusOrderByViewCountDesc(keyword, category, "판매중", pageable);
         return trades.map(this::convertToResponseDto);
+    }
+
+    // 위치 기반 조회 메서드들 구현
+    @Override
+    @Transactional(readOnly = true)
+    public List<TradeResponseDto> getNearbyTrades(Point userPosition) {
+        if (userPosition == null) {
+            return getAllTrades(); // 위치 정보가 없으면 전체 조회
+        }
+        
+        List<Trade> trades = tradeRepository.findNearbyTradesOrderByViewCountDesc(userPosition, "판매중");
+        return trades.stream()
+                .map(this::convertToResponseDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<TradeResponseDto> getNearbyTradesWithPagination(Point userPosition, Pageable pageable) {
+        if (userPosition == null) {
+            return getPagedTrades(pageable.getPageNumber(), pageable.getPageSize()); // 위치 정보가 없으면 전체 조회
+        }
+        
+        Page<Trade> trades = tradeRepository.findNearbyTradesOrderByViewCountDesc(userPosition, "판매중", pageable);
+        return trades.map(this::convertToResponseDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<TradeResponseDto> searchNearbyTradesByKeyword(String keyword, Point userPosition, Pageable pageable) {
+        if (userPosition == null) {
+            return searchTradesByKeywordWithPagination(keyword, pageable); // 위치 정보가 없으면 일반 검색
+        }
+        
+        Page<Trade> trades = tradeRepository.findNearbyTradesByKeywordOrderByViewCountDesc(keyword, userPosition, "판매중", pageable);
+        return trades.map(this::convertToResponseDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<TradeResponseDto> searchNearbyTradesByKeywordAndCategory(String keyword, String category, Point userPosition, Pageable pageable) {
+        if (userPosition == null) {
+            return searchTradesByKeywordAndCategoryWithPagination(keyword, category, pageable); // 위치 정보가 없으면 일반 검색
+        }
+        
+        Page<Trade> trades = tradeRepository.findNearbyTradesByKeywordAndCategoryOrderByViewCountDesc(keyword, category, userPosition, "판매중", pageable);
+        return trades.map(this::convertToResponseDto);
+    }
+
+    // 사용자 ID를 받아서 위치 기반 조회하는 편의 메서드들
+    @Override
+    @Transactional(readOnly = true)
+    public List<TradeResponseDto> getNearbyTradesByUserId(Long userId) {
+        Point userPosition = getUserPosition(userId);
+        return getNearbyTrades(userPosition);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<TradeResponseDto> getNearbyTradesWithPaginationByUserId(Long userId, Pageable pageable) {
+        Point userPosition = getUserPosition(userId);
+        return getNearbyTradesWithPagination(userPosition, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<TradeResponseDto> searchNearbyTradesByKeywordAndUserId(String keyword, Long userId, Pageable pageable) {
+        Point userPosition = getUserPosition(userId);
+        return searchNearbyTradesByKeyword(keyword, userPosition, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<TradeResponseDto> searchNearbyTradesByKeywordAndCategoryAndUserId(String keyword, String category, Long userId, Pageable pageable) {
+        Point userPosition = getUserPosition(userId);
+        return searchNearbyTradesByKeywordAndCategory(keyword, category, userPosition, pageable);
+    }
+
+    /**
+     * 사용자 ID로부터 위치 정보를 조회하는 헬퍼 메서드
+     */
+    private Point getUserPosition(Long userId) {
+        if (userId == null) {
+            return null;
+        }
+        
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return null;
+        }
+        
+        return user.getPosition();
     }
 
     @Override
@@ -398,7 +491,14 @@ public class TradeServiceImpl implements TradeService {
         responseDto.setId(trade.getId());
         responseDto.setSellerId(trade.getSeller().getId());
         responseDto.setSellerUsername(trade.getSeller().getUsername());
-        responseDto.setSellerNickname(trade.getSeller().getNickname());
+        
+        // 닉네임이 null이거나 비어있으면 이메일을 사용 (소셜로그인 사용자 대응)
+        String sellerNickname = trade.getSeller().getNickname();
+        if (sellerNickname == null || sellerNickname.trim().isEmpty()) {
+            sellerNickname = trade.getSeller().getEmail();
+        }
+        responseDto.setSellerNickname(sellerNickname);
+        
         responseDto.setSellerLocation(trade.getSeller().getLocation());
         responseDto.setTitle(trade.getTitle());
         responseDto.setPrice(trade.getPrice());

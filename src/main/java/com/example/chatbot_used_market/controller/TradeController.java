@@ -29,13 +29,21 @@ public class TradeController {
     //거래글 목록 페이지
     @GetMapping
     public String tradeList(Model model, HttpSession session) {
-        Page<TradeResponseDto> page = tradeService.getPagedTrades(0, 8);
+        // 로그인된 사용자 ID 조회
+        Long loginUserId = (Long) session.getAttribute("loginUserId");
+        
+        // 위치 기반 필터링 적용 (로그인했고 위치 인증된 사용자)
+        Page<TradeResponseDto> page;
+        if (loginUserId != null) {
+            // 사용자가 위치 인증했으면 5km 반경 내 게시글만 조회
+            page = tradeService.getNearbyTradesWithPaginationByUserId(loginUserId, PageRequest.of(0, 8));
+        } else {
+            // 비로그인 사용자는 전체 게시글 조회
+            page = tradeService.getPagedTrades(0, 8);
+        }
 
         model.addAttribute("trades", page.getContent());
         model.addAttribute("hasNext", !page.isLast());
-        
-        // 로그인된 사용자 ID 전달
-        Long loginUserId = (Long) session.getAttribute("loginUserId");
         model.addAttribute("loginUserId", loginUserId);
         
         // hasNickname 변수 추가 (기본값 false)
@@ -53,14 +61,31 @@ public class TradeController {
                               Model model, HttpSession session) {
         // 페이지네이션을 위한 Pageable 객체 생성 (page는 0부터 시작)
         Pageable pageable = PageRequest.of(page - 1, size);
+        
+        // 로그인된 사용자 ID 조회
+        Long loginUserId = (Long) session.getAttribute("loginUserId");
+        
         Page<TradeResponseDto> tradesPage;
 
-        if (category != null && !category.isEmpty()) {
-            // 키워드와 카테고리 모두로 검색
-            tradesPage = tradeService.searchTradesByKeywordAndCategoryWithPagination(keyword, category, pageable);
+        // 위치 기반 필터링 적용
+        if (loginUserId != null) {
+            // 로그인한 사용자: 위치 기반 검색 (5km 반경)
+            if (category != null && !category.isEmpty()) {
+                // 키워드 + 카테고리 + 위치 기반 검색
+                tradesPage = tradeService.searchNearbyTradesByKeywordAndCategoryAndUserId(keyword, category, loginUserId, pageable);
+            } else {
+                // 키워드 + 위치 기반 검색
+                tradesPage = tradeService.searchNearbyTradesByKeywordAndUserId(keyword, loginUserId, pageable);
+            }
         } else {
-            // 키워드만으로 검색
-            tradesPage = tradeService.searchTradesByKeywordWithPagination(keyword, pageable);
+            // 비로그인 사용자: 전체 검색
+            if (category != null && !category.isEmpty()) {
+                // 키워드와 카테고리 모두로 검색
+                tradesPage = tradeService.searchTradesByKeywordAndCategoryWithPagination(keyword, category, pageable);
+            } else {
+                // 키워드만으로 검색
+                tradesPage = tradeService.searchTradesByKeywordWithPagination(keyword, pageable);
+            }
         }
 
         // 페이지네이션 정보 계산
@@ -80,9 +105,6 @@ public class TradeController {
         model.addAttribute("totalElements", totalElements);
         model.addAttribute("startPage", startPage);
         model.addAttribute("endPage", endPage);
-
-        // 로그인된 사용자 ID 전달
-        Long loginUserId = (Long) session.getAttribute("loginUserId");
         model.addAttribute("loginUserId", loginUserId);
 
         return "search";
@@ -233,7 +255,18 @@ public class TradeController {
     @GetMapping("/api")
     @ResponseBody
     public Page<TradeResponseDto> getPagedTrades(@RequestParam(defaultValue = "0") int page,
-                                                 @RequestParam(defaultValue = "8") int size) {
-        return tradeService.getPagedTrades(page, size);
+                                                 @RequestParam(defaultValue = "8") int size,
+                                                 HttpSession session) {
+        // 로그인된 사용자 ID 조회
+        Long loginUserId = (Long) session.getAttribute("loginUserId");
+        
+        // 위치 기반 필터링 적용
+        if (loginUserId != null) {
+            // 로그인한 사용자: 위치 기반 조회 (5km 반경)
+            return tradeService.getNearbyTradesWithPaginationByUserId(loginUserId, PageRequest.of(page, size));
+        } else {
+            // 비로그인 사용자: 전체 조회
+            return tradeService.getPagedTrades(page, size);
+        }
     }
 }
