@@ -11,7 +11,7 @@ Spring Boot 기반의 중고마켓 웹 애플리케이션으로, AI 챗봇을 �
 - **Backend**: Spring Boot 3.5.3, Java 17, Spring Security, JPA, WebSocket
 - **Database**: PostgreSQL + PostGIS
 - **Cloud**: AWS S3, AWS EC2, AWS RDS
-- **Frontend**: Thymeleaf, JavaScript, CSS3
+- **Frontend**: Thymeleaf, JavaScript, CSS
 
 ## 🗄️ 데이터베이스 설계 (ERD)
 
@@ -59,7 +59,7 @@ chatbot-used-market/
 
 ### 💬 실시간 채팅
 
-- WebSocket 기반 실시간 메시지지
+- WebSocket 기반 실시간 메시지
 - 판매자와 구매자 간 1:1 채팅
 - 거래 확정 기능
 
