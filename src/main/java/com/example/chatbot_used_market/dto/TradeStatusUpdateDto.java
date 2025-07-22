@@ -9,4 +9,5 @@ import lombok.Setter;
 @NoArgsConstructor
 public class TradeStatusUpdateDto {
     private String status;
+    private Long buyerId;
 }

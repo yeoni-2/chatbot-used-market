@@ -354,14 +354,19 @@ public class TradeServiceImpl implements TradeService {
 
     @Override
     @Transactional
-    public TradeResponseDto updateTradeStatus(Long tradeId, String status, Long currentUserId) {
+    public TradeResponseDto updateTradeStatus(Long tradeId, String status, Long buyerId, Long currentUserId) {
         Trade trade = tradeRepository.findById(tradeId)
-                .orElseThrow(() -> new RuntimeException("Trade not found with id: " + tradeId));
+                .orElseThrow(() -> new RuntimeException("Trade not found"));
 
         if (!trade.getSeller().getId().equals(currentUserId))
             throw new SecurityException("거래 상태를 변경할 권한이 없습니다.");
 
+        User buyer = userRepository.findById(buyerId)
+                .orElseThrow(() -> new RuntimeException("Buyer not found"));
+
         trade.setStatus(status);
+        trade.setBuyer(buyer);
+
         Trade updatedTrade = tradeRepository.save(trade);
 
         return convertToResponseDto(updatedTrade);
