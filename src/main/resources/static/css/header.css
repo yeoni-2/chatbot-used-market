@@ -152,3 +152,48 @@
 .button-form {
   display: inline;
 }
+
+@media screen and (max-width: 768px) {
+  .fixed-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px 20px;
+  }
+
+  .header-left,
+  .header-right {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .search-container {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .search-input,
+  .category-select,
+  .search-button {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .button-form {
+    width: 100%;
+  }
+
+  .chatBtn,
+  .loginBtn,
+  .myPageBtn {
+    width: 100%;
+    margin: 4px 0;
+  }
+
+  .mainBtn img {
+    width: 120px;
+    height: auto;
+  }
+}
