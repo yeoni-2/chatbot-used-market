@@ -175,7 +175,10 @@ public class UserController {
                                 .get("geometry").get("location");
                         double latitude = locationNode.get("lat").asDouble();
                         double longitude = locationNode.get("lng").asDouble();
-
+                        System.out.println(result);
+                        System.out.println(latitude);
+                        System.out.println(longitude);
+                        System.out.println(userLocationDto.getLocation());
                         // distance <= 2km
                         if (GeometryUtil.isInDistance(
                                 userLocationDto.getLatitude(),
@@ -194,5 +197,12 @@ public class UserController {
                         return "redirect:/users/"+userId;
                     }
                 });
+    }
+
+    @GetMapping("/test")
+    public String asdf(){
+        System.out.println(GeometryUtil.isInDistance(127.171291, 37.367713, 127.159615, 37.368464, 2));
+
+        return "redirect:/main";
     }
 }
