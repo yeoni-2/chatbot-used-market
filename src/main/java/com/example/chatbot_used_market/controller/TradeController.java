@@ -137,7 +137,6 @@ public class TradeController {
         if (loginUserId == null) {
             return "redirect:/login"; // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
         }
-        
         try {
             TradeResponseDto responseDto = tradeService.createTrade(requestDto, images, loginUserId);
             // 작성 완료 후 상세 페이지로 리다이렉트
@@ -146,11 +145,13 @@ public class TradeController {
             // 에러 처리 (실제로는 에러 페이지로 리다이렉트하거나 메시지 표시)
             return "redirect:/trades/write?error=" + e.getMessage();
         }
+
     }
 
     // 거래글 상세 페이지
     @GetMapping("/trades/{id}")
     public String tradeDetail(@PathVariable Long id, Model model, HttpSession session) {
+
         try {
             // 조회수 증가
             tradeService.incrementViewCount(id);
@@ -177,6 +178,7 @@ public class TradeController {
         if (loginUserId == null) {
             return "redirect:/login"; // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
         }
+
         
         try {
             // 작성자 권한 확인 (서비스에서 처리)
@@ -202,7 +204,6 @@ public class TradeController {
         if (loginUserId == null) {
             return "redirect:/login"; // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
         }
-        
         try {
             TradeResponseDto responseDto = tradeService.updateTrade(id, requestDto, images, loginUserId);
             // 수정 완료 후 상세 페이지로 리다이렉트
@@ -212,6 +213,7 @@ public class TradeController {
         } catch (Exception e) {
             return "redirect:/trades/" + id + "/edit?error=" + e.getMessage();
         }
+
     }
 
     // 거래글 삭제
@@ -222,7 +224,6 @@ public class TradeController {
         if (loginUserId == null) {
             return "redirect:/login"; // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
         }
-        
         try {
             tradeService.deleteTrade(id, loginUserId);
             // 삭제 완료 후 목록 페이지로 리다이렉트
@@ -247,7 +248,6 @@ public class TradeController {
         if (loginUserId == null) {
             return ResponseEntity.status(401).build();
         }
-
         try {
             TradeResponseDto updatedTrade = tradeService.updateTradeStatus(id, requestDto.getStatus(), requestDto.getBuyerId(), loginUserId);
             return ResponseEntity.ok(updatedTrade);
