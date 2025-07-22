@@ -24,4 +24,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
           "JOIN FETCH r.trade t " +
           "WHERE r.reviewer.id=:userId")
   List<Review> findWrittenReviewByUserId(@Param("userId") Long userId);
+
+  @Query(value = "SELECT EXISTS (SELECT id FROM reviews WHERE trade_id=:tradeId AND reviewer_id=:reviewerId)", nativeQuery = true)
+  boolean existsByTradeIdAndReviewerId(Long tradeId, Long reviewerId);
 }

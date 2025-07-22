@@ -30,4 +30,5 @@ public interface TradeService {
     Trade findById(Long id);
     boolean existsById(Long id);
     TradeResponseDto updateTradeStatus(Long tradeId, String status, Long buyerId, Long currentUserId);
+    List<Trade> findTradesByUserIdAndStatus(Long tradeId, String status);
 }
