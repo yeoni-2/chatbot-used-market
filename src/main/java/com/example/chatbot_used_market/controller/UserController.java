@@ -95,10 +95,10 @@ public class UserController {
         return "login";
     }
 
-    @GetMapping("/main")
-    public String mainPage() {
-        return "main";
-    }
+//    @GetMapping("/main")
+//    public String mainPage() {
+//        return "main";
+//    }
 
     @GetMapping("/users/{id}")
     public String userProfile(@PathVariable("id") Long targetUserId, HttpSession session, Model model){
