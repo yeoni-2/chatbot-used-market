@@ -20,7 +20,6 @@ import jakarta.servlet.http.HttpSession;
 import java.util.List;
 
 @Controller
-@RequestMapping("/trades")
 public class TradeController {
     
     private final TradeService tradeService;
@@ -32,7 +31,7 @@ public class TradeController {
     }
     
     //거래글 목록 페이지
-    @GetMapping
+    @GetMapping("/trades")
     public String tradeList(Model model, HttpSession session) {
         Page<TradeResponseDto> page = tradeService.getPagedTrades(0, 8);
 
@@ -48,9 +47,17 @@ public class TradeController {
 
         return "trade";
     }
+
+    //메인 페이지 거래글 목록
+    @GetMapping("/main")
+    public String mainPage(Model model) {
+        Page<TradeResponseDto> page = tradeService.getPagedTrades(0, 8);
+        model.addAttribute("trades", page.getContent());
+        return "main";
+    }
     
     // 검색 기능
-    @GetMapping("/search")
+    @GetMapping("/trades/search")
     public String searchTrades(@RequestParam String keyword,
                               @RequestParam(required = false) String category,
                               @RequestParam(defaultValue = "1") int page,
@@ -93,7 +100,7 @@ public class TradeController {
         return "search";
     }
 
-    @GetMapping("/write")
+    @GetMapping("/trades/write")
     public String writeForm(HttpSession session) {
         // 로그인 확인
         Long loginUserId = (Long) session.getAttribute("loginUserId");
@@ -104,7 +111,7 @@ public class TradeController {
     }
     
     // 거래글 작성 처리
-    @PostMapping
+    @PostMapping("/trades")
     public String createTrade(@ModelAttribute TradeRequestDto requestDto,
                              @RequestParam(value = "images", required = false) List<MultipartFile> images,
                              HttpSession session) {
@@ -124,7 +131,7 @@ public class TradeController {
     }
     
     // 거래글 상세 페이지
-    @GetMapping("/{id}")
+    @GetMapping("/trades/{id}")
     public String tradeDetail(@PathVariable Long id, Model model, HttpSession session) {
         // 조회수 증가
         tradeService.incrementViewCount(id);
@@ -141,7 +148,7 @@ public class TradeController {
     }
     
     // 거래글 수정 페이지
-    @GetMapping("/{id}/edit")
+    @GetMapping("/trades/{id}/edit")
     public String editTradeForm(@PathVariable Long id, Model model, HttpSession session) {
         // 로그인 확인
         Long loginUserId = (Long) session.getAttribute("loginUserId");
@@ -160,7 +167,7 @@ public class TradeController {
     }
     
     // 거래글 수정 처리
-    @PostMapping("/{id}")
+    @PostMapping("/trades/{id}")
     public String updateTradePost(@PathVariable Long id, @ModelAttribute TradeRequestDto requestDto,
                                  @RequestParam(value = "images", required = false) List<MultipartFile> images,
                                  HttpSession session) {
@@ -186,7 +193,7 @@ public class TradeController {
     }
     
     // 거래글 삭제
-    @GetMapping("/{id}/delete")
+    @GetMapping("/trades/{id}/delete")
     public String deleteTrade(@PathVariable Long id, HttpSession session) {
         // 로그인 확인
         Long loginUserId = (Long) session.getAttribute("loginUserId");
@@ -206,7 +213,7 @@ public class TradeController {
     }
 
     // --- 거래 상태 변경 API 추가 ---
-    @PatchMapping("/{id}/status")
+    @PatchMapping("/trades/{id}/status")
     @ResponseBody
     public ResponseEntity<TradeResponseDto> updateTradeStatus(
             @PathVariable Long id,
@@ -224,7 +231,7 @@ public class TradeController {
     }
 
     // 무한스크롤 API
-    @GetMapping("/api")
+    @GetMapping("/trades/api")
     @ResponseBody
     public Page<TradeResponseDto> getPagedTrades(@RequestParam(defaultValue = "0") int page,
                                                  @RequestParam(defaultValue = "8") int size) {
