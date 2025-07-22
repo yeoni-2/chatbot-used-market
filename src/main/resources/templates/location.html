@@ -31,7 +31,10 @@
               document.querySelector("#dongName").value = dongName;
               document.querySelector("#submit").removeAttribute("disabled");
             }
-            document.querySelector("#location").value = jAddr;
+
+            let roadAddr = data.roadAddress;
+
+            document.querySelector("#location").value = roadAddr;
           }
         }).open();
       }
