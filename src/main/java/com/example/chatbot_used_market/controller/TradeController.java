@@ -3,9 +3,7 @@ package com.example.chatbot_used_market.controller;
 import com.example.chatbot_used_market.dto.TradeRequestDto;
 import com.example.chatbot_used_market.dto.TradeResponseDto;
 import com.example.chatbot_used_market.dto.TradeStatusUpdateDto;
-import com.example.chatbot_used_market.entity.User;
 import com.example.chatbot_used_market.service.TradeService;
-import com.example.chatbot_used_market.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,7 +12,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.data.domain.Page;
 
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
@@ -24,11 +21,9 @@ import java.util.List;
 public class TradeController {
     
     private final TradeService tradeService;
-    private final UserRepository userRepository;
     
-    public TradeController(TradeService tradeService, UserRepository userRepository) {
+    public TradeController(TradeService tradeService) {
         this.tradeService = tradeService;
-        this.userRepository = userRepository;
     }
     
     //거래글 목록 페이지
@@ -108,36 +103,41 @@ public class TradeController {
     public String createTrade(@ModelAttribute TradeRequestDto requestDto,
                              @RequestParam(value = "images", required = false) List<MultipartFile> images,
                              HttpSession session) {
-        // 로그인된 사용자 정보 가져오기
+        // 로그인된 사용자 ID 가져오기
         Long loginUserId = (Long) session.getAttribute("loginUserId");
         if (loginUserId == null) {
             return "redirect:/login"; // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
         }
         
-        User seller = userRepository.findById(loginUserId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        TradeResponseDto responseDto = tradeService.createTrade(requestDto, images, seller);
-        
-        // 작성 완료 후 상세 페이지로 리다이렉트
-        return "redirect:/trades/" + responseDto.getId();
+        try {
+            TradeResponseDto responseDto = tradeService.createTrade(requestDto, images, loginUserId);
+            // 작성 완료 후 상세 페이지로 리다이렉트
+            return "redirect:/trades/" + responseDto.getId();
+        } catch (Exception e) {
+            // 에러 처리 (실제로는 에러 페이지로 리다이렉트하거나 메시지 표시)
+            return "redirect:/trades/write?error=" + e.getMessage();
+        }
     }
     
     // 거래글 상세 페이지
     @GetMapping("/{id}")
     public String tradeDetail(@PathVariable Long id, Model model, HttpSession session) {
-        // 조회수 증가
-        tradeService.incrementViewCount(id);
-        
-        TradeResponseDto trade = tradeService.getTradeById(id);
-        model.addAttribute("trade", trade);
-        
-        // 로그인된 사용자가 작성자인지 확인
-        Long loginUserId = (Long) session.getAttribute("loginUserId");
-        boolean isAuthor = loginUserId != null && loginUserId.equals(trade.getSellerId());
-        model.addAttribute("isAuthor", isAuthor);
-        
-        return "trade_post";
+        try {
+            // 조회수 증가
+            tradeService.incrementViewCount(id);
+            
+            TradeResponseDto trade = tradeService.getTradeById(id);
+            model.addAttribute("trade", trade);
+            
+            // 로그인된 사용자가 작성자인지 확인
+            Long loginUserId = (Long) session.getAttribute("loginUserId");
+            boolean isAuthor = tradeService.isTradeAuthor(id, loginUserId);
+            model.addAttribute("isAuthor", isAuthor);
+            
+            return "trade_post";
+        } catch (Exception e) {
+            return "redirect:/trades?error=" + e.getMessage();
+        }
     }
     
     // 거래글 수정 페이지
@@ -149,14 +149,18 @@ public class TradeController {
             return "redirect:/login"; // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
         }
         
-        // 작성자 확인
-        TradeResponseDto trade = tradeService.getTradeById(id);
-        if (!loginUserId.equals(trade.getSellerId())) {
-            return "redirect:/trades/" + id; // 작성자가 아니면 상세 페이지로 리다이렉트
+        try {
+            // 작성자 권한 확인 (서비스에서 처리)
+            tradeService.validateTradeAuthor(id, loginUserId);
+            
+            TradeResponseDto trade = tradeService.getTradeById(id);
+            model.addAttribute("trade", trade);
+            return "write";
+        } catch (SecurityException e) {
+            return "redirect:/trades/" + id + "?error=unauthorized";
+        } catch (Exception e) {
+            return "redirect:/trades?error=" + e.getMessage();
         }
-        
-        model.addAttribute("trade", trade);
-        return "write";
     }
     
     // 거래글 수정 처리
@@ -170,19 +174,15 @@ public class TradeController {
             return "redirect:/login"; // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
         }
         
-        // 작성자 확인
-        TradeResponseDto existingTrade = tradeService.getTradeById(id);
-        if (!loginUserId.equals(existingTrade.getSellerId())) {
-            return "redirect:/trades/" + id; // 작성자가 아니면 상세 페이지로 리다이렉트
+        try {
+            TradeResponseDto responseDto = tradeService.updateTrade(id, requestDto, images, loginUserId);
+            // 수정 완료 후 상세 페이지로 리다이렉트
+            return "redirect:/trades/" + responseDto.getId();
+        } catch (SecurityException e) {
+            return "redirect:/trades/" + id + "?error=unauthorized";
+        } catch (Exception e) {
+            return "redirect:/trades/" + id + "/edit?error=" + e.getMessage();
         }
-        
-        // 로그인된 사용자를 판매자로 설정
-        User seller = userRepository.findById(loginUserId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        TradeResponseDto responseDto = tradeService.updateTrade(id, requestDto, images, seller);
-        // 수정 완료 후 상세 페이지로 리다이렉트
-        return "redirect:/trades/" + responseDto.getId();
     }
     
     // 거래글 삭제
@@ -194,15 +194,15 @@ public class TradeController {
             return "redirect:/login"; // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
         }
         
-        // 작성자 확인
-        TradeResponseDto existingTrade = tradeService.getTradeById(id);
-        if (!loginUserId.equals(existingTrade.getSellerId())) {
-            return "redirect:/trades/" + id; // 작성자가 아니면 상세 페이지로 리다이렉트
+        try {
+            tradeService.deleteTrade(id, loginUserId);
+            // 삭제 완료 후 목록 페이지로 리다이렉트
+            return "redirect:/trades";
+        } catch (SecurityException e) {
+            return "redirect:/trades/" + id + "?error=unauthorized";
+        } catch (Exception e) {
+            return "redirect:/trades?error=" + e.getMessage();
         }
-        
-        tradeService.deleteTrade(id);
-        // 삭제 완료 후 목록 페이지로 리다이렉트
-        return "redirect:/trades";
     }
 
     // --- 거래 상태 변경 API 추가 ---
@@ -215,12 +215,18 @@ public class TradeController {
 
         Long loginUserId = (Long) session.getAttribute("loginUserId");
 
-        if (loginUserId == null)
+        if (loginUserId == null) {
             return ResponseEntity.status(401).build();
+        }
 
-        TradeResponseDto updatedTrade = tradeService.updateTradeStatus(id, requestDto.getStatus(), loginUserId);
-
-        return ResponseEntity.ok(updatedTrade);
+        try {
+            TradeResponseDto updatedTrade = tradeService.updateTradeStatus(id, requestDto.getStatus(), loginUserId);
+            return ResponseEntity.ok(updatedTrade);
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
     }
 
     // 무한스크롤 API

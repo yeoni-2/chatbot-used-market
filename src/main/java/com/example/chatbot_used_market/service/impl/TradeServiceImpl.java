@@ -80,6 +80,16 @@ public class TradeServiceImpl implements TradeService {
 
     @Override
     @Transactional
+    public TradeResponseDto createTrade(TradeRequestDto requestDto, List<MultipartFile> images, Long sellerId) {
+        // 사용자 조회 및 검증
+        User seller = userRepository.findById(sellerId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        
+        return createTrade(requestDto, images, seller);
+    }
+
+    @Override
+    @Transactional
     public TradeResponseDto createTrade(TradeRequestDto requestDto, List<MultipartFile> images, User seller) {
         // 1. 이미지 파일 사전 검증
         if (images != null && !images.isEmpty() && !(images.size()==1 && images.get(0).getOriginalFilename().isEmpty())) {
@@ -130,13 +140,79 @@ public class TradeServiceImpl implements TradeService {
     }
     
     @Override
-    @Transactional(readOnly = true)
-    public TradeResponseDto getTradeById(Long id) {
-        Trade trade = tradeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Trade not found with id: " + id));
-        return convertToResponseDto(trade);
+    @Transactional
+    public TradeResponseDto updateTrade(Long id, TradeRequestDto requestDto, List<MultipartFile> images, Long currentUserId) {
+        // 거래글 존재 확인
+        if (!existsById(id)) {
+            throw new RuntimeException("거래글을 찾을 수 없습니다.");
+        }
+        
+        // 작성자 권한 확인
+        validateTradeAuthor(id, currentUserId);
+        
+        // 사용자 조회
+        User seller = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        
+        return updateTrade(id, requestDto, images, seller);
     }
-    
+
+    @Override
+    @Transactional
+    public void deleteTrade(Long id, Long currentUserId) {
+        // 거래글 존재 확인
+        if (!existsById(id)) {
+            throw new RuntimeException("거래글을 찾을 수 없습니다.");
+        }
+        
+        // 작성자 권한 확인
+        validateTradeAuthor(id, currentUserId);
+        
+        deleteTrade(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isTradeAuthor(Long tradeId, Long userId) {
+        if (userId == null) {
+            return false;
+        }
+        
+        Trade trade = tradeRepository.findById(tradeId).orElse(null);
+        if (trade == null) {
+            return false;
+        }
+        
+        return userId.equals(trade.getSeller().getId());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void validateTradeAuthor(Long tradeId, Long userId) {
+        if (userId == null) {
+            throw new SecurityException("로그인이 필요합니다.");
+        }
+        
+        if (!isTradeAuthor(tradeId, userId)) {
+            throw new SecurityException("작성자만 수정/삭제할 수 있습니다.");
+        }
+    }
+
+    @Override
+    @Transactional
+    public TradeResponseDto updateTradeStatus(Long tradeId, String status, Long currentUserId) {
+        Trade trade = tradeRepository.findById(tradeId)
+                .orElseThrow(() -> new RuntimeException("Trade not found with id: " + tradeId));
+
+        if (!trade.getSeller().getId().equals(currentUserId))
+            throw new SecurityException("거래 상태를 변경할 권한이 없습니다.");
+
+        trade.setStatus(status);
+        Trade updatedTrade = tradeRepository.save(trade);
+
+        return convertToResponseDto(updatedTrade);
+    }
+
     @Override
     @Transactional
     public TradeResponseDto updateTrade(Long id, TradeRequestDto requestDto, List<MultipartFile> images, User seller) {
@@ -189,7 +265,7 @@ public class TradeServiceImpl implements TradeService {
             throw new RuntimeException("거래글 수정에 실패했습니다: " + e.getMessage(), e);
         }
     }
-    
+
     @Override
     @Transactional
     public void deleteTrade(Long id) {
@@ -228,6 +304,14 @@ public class TradeServiceImpl implements TradeService {
         Page<Trade> tradesPage = tradeRepository.findByStatus("판매중", pageable);
 
         return tradesPage.map(this::convertToResponseDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public TradeResponseDto getTradeById(Long id) {
+        Trade trade = tradeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Trade not found with id: " + id));
+        return convertToResponseDto(trade);
     }
 
 
@@ -350,20 +434,5 @@ public class TradeServiceImpl implements TradeService {
 
     public boolean existsById(Long id){
         return tradeRepository.existsById(id);
-    }
-
-    @Override
-    @Transactional
-    public TradeResponseDto updateTradeStatus(Long tradeId, String status, Long currentUserId) {
-        Trade trade = tradeRepository.findById(tradeId)
-                .orElseThrow(() -> new RuntimeException("Trade not found with id: " + tradeId));
-
-        if (!trade.getSeller().getId().equals(currentUserId))
-            throw new SecurityException("거래 상태를 변경할 권한이 없습니다.");
-
-        trade.setStatus(status);
-        Trade updatedTrade = tradeRepository.save(trade);
-
-        return convertToResponseDto(updatedTrade);
     }
 }
