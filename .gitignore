@@ -39,14 +39,13 @@ application-postgresql.properties
 application-google-oauth2.properties
 application-google-geocoding.properties
 
-api.txt
-db.sql
-data.sql
-ERD.png
-feature.txt
-trade-post.png
-trade.png
-write.png
+### Test files (위치 기반 필터링 테스트 코드) ###
+src/test/java/com/example/chatbot_used_market/manual/
+src/test/java/com/example/chatbot_used_market/service/TradeServiceLocationTest.java
+src/test/java/com/example/chatbot_used_market/service/TradeServiceLocationMockTest.java
+src/test/java/com/example/chatbot_used_market/util/GeometryUtilTest.java
+src/test/resources/application-test.properties
+
 
 ### aws ###
 src/main/resources/application-aws.properties

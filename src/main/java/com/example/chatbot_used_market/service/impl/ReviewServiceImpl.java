@@ -67,4 +67,9 @@ public class ReviewServiceImpl implements ReviewService {
 
     return true;
   }
+
+  @Override
+  public boolean existsByTradeIdAndReviewerId(Long tradeId, Long reviewerId){
+    return reviewRepository.existsByTradeIdAndReviewerId(tradeId, reviewerId);
+  }
 }

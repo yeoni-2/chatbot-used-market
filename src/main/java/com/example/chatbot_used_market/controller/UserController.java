@@ -1,16 +1,18 @@
 package com.example.chatbot_used_market.controller;
 
+import com.example.chatbot_used_market.dto.CompletedTradeDto;
 import com.example.chatbot_used_market.dto.UserLocationDto;
 import com.example.chatbot_used_market.dto.UserSignupDto;
 import com.example.chatbot_used_market.entity.Review;
+import com.example.chatbot_used_market.entity.Trade;
 import com.example.chatbot_used_market.entity.User;
 import com.example.chatbot_used_market.service.ReviewService;
+import com.example.chatbot_used_market.service.TradeService;
 import com.example.chatbot_used_market.service.UserService;
 import com.example.chatbot_used_market.util.GeometryUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,16 +20,19 @@ import jakarta.servlet.http.HttpSession;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 public class UserController {
 
     private final UserService userService;
     private final ReviewService reviewService;
+    private final TradeService tradeService;
 
-    public UserController(UserService userService, ReviewService reviewService) {
+    public UserController(UserService userService, ReviewService reviewService, TradeService tradeService) {
         this.userService = userService;
         this.reviewService = reviewService;
+        this.tradeService = tradeService;
     }
 
     @GetMapping("/signup")
@@ -95,10 +100,10 @@ public class UserController {
         return "login";
     }
 
-    @GetMapping("/main")
-    public String mainPage() {
-        return "main";
-    }
+//    @GetMapping("/main")
+//    public String mainPage() {
+//        return "main";
+//    }
 
     @GetMapping("/users/{id}")
     public String userProfile(@PathVariable("id") Long targetUserId, HttpSession session, Model model){
@@ -116,9 +121,18 @@ public class UserController {
 
         List<Review> receivedReviews = reviewService.findReceivedReviewsByUserId(userId);
         List<Review> writtenReviews = reviewService.findWrittenReviewsByUserId(userId);
+        List<Trade> sellingTrades = tradeService.findTradesByUserIdAndStatus(userId, "판매중");
+        List<Trade> completedTrades = tradeService.findTradesByUserIdAndStatus(userId, "거래완료");
+        List<CompletedTradeDto> completedTradeDtoList = completedTrades.stream()
+                .map(trade -> {
+                    boolean isReviewWritten = reviewService.existsByTradeIdAndReviewerId(trade.getId(), userId);
+                    return new CompletedTradeDto(trade, isReviewWritten);
+                }).collect(Collectors.toList());
 
         model.addAttribute("receivedReviews", receivedReviews);
         model.addAttribute("writtenReviews", writtenReviews);
+        model.addAttribute("sellingTrades", sellingTrades);
+        model.addAttribute("completedTrades", completedTradeDtoList);
 
         return "userProfile";
     }
