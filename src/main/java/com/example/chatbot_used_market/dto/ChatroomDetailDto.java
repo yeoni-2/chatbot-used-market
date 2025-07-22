@@ -15,6 +15,7 @@ public class ChatroomDetailDto {
     private String tradeThumbnailUrl;
     private String tradeStatus;
     private Long sellerId;
+    private Long buyerId;
 
     public ChatroomDetailDto(Chatroom chatroom) {
         Trade trade = chatroom.getTrade();
@@ -24,6 +25,7 @@ public class ChatroomDetailDto {
         this.tradePrice = trade.getPrice();
         this.tradeStatus = trade.getStatus();
         this.sellerId = chatroom.getSeller().getId();
+        this.buyerId = chatroom.getBuyer().getId();
 
         List<TradeImage> tradeImages = chatroom.getTrade().getTradeImages();
         if (tradeImages != null && !tradeImages.isEmpty()) {

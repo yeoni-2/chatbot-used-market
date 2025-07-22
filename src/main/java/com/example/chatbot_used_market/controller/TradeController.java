@@ -17,21 +17,20 @@ import jakarta.servlet.http.HttpSession;
 import java.util.List;
 
 @Controller
-@RequestMapping("/trades")
 public class TradeController {
-    
+
     private final TradeService tradeService;
-    
+
     public TradeController(TradeService tradeService) {
         this.tradeService = tradeService;
     }
-    
+
     //거래글 목록 페이지
-    @GetMapping
+    @GetMapping("/trades")
     public String tradeList(Model model, HttpSession session) {
         // 로그인된 사용자 ID 조회
         Long loginUserId = (Long) session.getAttribute("loginUserId");
-        
+
         // 위치 기반 필터링 적용 (로그인했고 위치 인증된 사용자)
         Page<TradeResponseDto> page;
         if (loginUserId != null) {
@@ -45,15 +44,23 @@ public class TradeController {
         model.addAttribute("trades", page.getContent());
         model.addAttribute("hasNext", !page.isLast());
         model.addAttribute("loginUserId", loginUserId);
-        
+
         // hasNickname 변수 추가 (기본값 false)
         model.addAttribute("hasNickname", false);
 
         return "trade";
     }
-    
+
+    //메인 페이지 거래글 목록
+    @GetMapping("/main")
+    public String mainPage(Model model) {
+        Page<TradeResponseDto> page = tradeService.getPagedTrades(0, 8);
+        model.addAttribute("trades", page.getContent());
+        return "main";
+    }
+
     // 검색 기능
-    @GetMapping("/search")
+    @GetMapping("/trades/search")
     public String searchTrades(@RequestParam String keyword,
                               @RequestParam(required = false) String category,
                               @RequestParam(defaultValue = "1") int page,
@@ -61,10 +68,10 @@ public class TradeController {
                               Model model, HttpSession session) {
         // 페이지네이션을 위한 Pageable 객체 생성 (page는 0부터 시작)
         Pageable pageable = PageRequest.of(page - 1, size);
-        
+
         // 로그인된 사용자 ID 조회
         Long loginUserId = (Long) session.getAttribute("loginUserId");
-        
+
         Page<TradeResponseDto> tradesPage;
 
         // 위치 기반 필터링 적용
@@ -110,7 +117,7 @@ public class TradeController {
         return "search";
     }
 
-    @GetMapping("/write")
+    @GetMapping("/trades/write")
     public String writeForm(HttpSession session) {
         // 로그인 확인
         Long loginUserId = (Long) session.getAttribute("loginUserId");
@@ -119,9 +126,9 @@ public class TradeController {
         }
         return "write";
     }
-    
+
     // 거래글 작성 처리
-    @PostMapping
+    @PostMapping("/trades")
     public String createTrade(@ModelAttribute TradeRequestDto requestDto,
                              @RequestParam(value = "images", required = false) List<MultipartFile> images,
                              HttpSession session) {
@@ -140,30 +147,30 @@ public class TradeController {
             return "redirect:/trades/write?error=" + e.getMessage();
         }
     }
-    
+
     // 거래글 상세 페이지
-    @GetMapping("/{id}")
+    @GetMapping("/trades/{id}")
     public String tradeDetail(@PathVariable Long id, Model model, HttpSession session) {
         try {
             // 조회수 증가
             tradeService.incrementViewCount(id);
-            
+
             TradeResponseDto trade = tradeService.getTradeById(id);
             model.addAttribute("trade", trade);
-            
+
             // 로그인된 사용자가 작성자인지 확인
             Long loginUserId = (Long) session.getAttribute("loginUserId");
             boolean isAuthor = tradeService.isTradeAuthor(id, loginUserId);
             model.addAttribute("isAuthor", isAuthor);
-            
+
             return "trade_post";
         } catch (Exception e) {
             return "redirect:/trades?error=" + e.getMessage();
         }
     }
-    
+
     // 거래글 수정 페이지
-    @GetMapping("/{id}/edit")
+    @GetMapping("/trades/{id}/edit")
     public String editTradeForm(@PathVariable Long id, Model model, HttpSession session) {
         // 로그인 확인
         Long loginUserId = (Long) session.getAttribute("loginUserId");
@@ -174,7 +181,7 @@ public class TradeController {
         try {
             // 작성자 권한 확인 (서비스에서 처리)
             tradeService.validateTradeAuthor(id, loginUserId);
-            
+
             TradeResponseDto trade = tradeService.getTradeById(id);
             model.addAttribute("trade", trade);
             return "write";
@@ -184,9 +191,9 @@ public class TradeController {
             return "redirect:/trades?error=" + e.getMessage();
         }
     }
-    
+
     // 거래글 수정 처리
-    @PostMapping("/{id}")
+    @PostMapping("/trades/{id}")
     public String updateTradePost(@PathVariable Long id, @ModelAttribute TradeRequestDto requestDto,
                                  @RequestParam(value = "images", required = false) List<MultipartFile> images,
                                  HttpSession session) {
@@ -206,9 +213,9 @@ public class TradeController {
             return "redirect:/trades/" + id + "/edit?error=" + e.getMessage();
         }
     }
-    
+
     // 거래글 삭제
-    @GetMapping("/{id}/delete")
+    @GetMapping("/trades/{id}/delete")
     public String deleteTrade(@PathVariable Long id, HttpSession session) {
         // 로그인 확인
         Long loginUserId = (Long) session.getAttribute("loginUserId");
@@ -228,7 +235,7 @@ public class TradeController {
     }
 
     // --- 거래 상태 변경 API 추가 ---
-    @PatchMapping("/{id}/status")
+    @PatchMapping("/trades/{id}/status")
     @ResponseBody
     public ResponseEntity<TradeResponseDto> updateTradeStatus(
             @PathVariable Long id,
@@ -242,7 +249,7 @@ public class TradeController {
         }
 
         try {
-            TradeResponseDto updatedTrade = tradeService.updateTradeStatus(id, requestDto.getStatus(), loginUserId);
+            TradeResponseDto updatedTrade = tradeService.updateTradeStatus(id, requestDto.getStatus(), requestDto.getBuyerId(), loginUserId);
             return ResponseEntity.ok(updatedTrade);
         } catch (SecurityException e) {
             return ResponseEntity.status(403).build();
@@ -252,14 +259,14 @@ public class TradeController {
     }
 
     // 무한스크롤 API
-    @GetMapping("/api")
+    @GetMapping("/trades/api")
     @ResponseBody
     public Page<TradeResponseDto> getPagedTrades(@RequestParam(defaultValue = "0") int page,
                                                  @RequestParam(defaultValue = "8") int size,
                                                  HttpSession session) {
         // 로그인된 사용자 ID 조회
         Long loginUserId = (Long) session.getAttribute("loginUserId");
-        
+
         // 위치 기반 필터링 적용
         if (loginUserId != null) {
             // 로그인한 사용자: 위치 기반 조회 (5km 반경)

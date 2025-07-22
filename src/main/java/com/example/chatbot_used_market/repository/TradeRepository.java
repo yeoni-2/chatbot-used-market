@@ -27,15 +27,18 @@ public interface TradeRepository extends JpaRepository<Trade, Long> {
 
     Page<Trade> findByStatus(String status, Pageable pageable);
 
+    @Query(value = "SELECT * FROM trades WHERE (seller_id=:userId OR buyer_id=:userId) AND status=:status", nativeQuery = true)
+    List<Trade> findByUserIdAndStatus(@Param("userId") Long userId, @Param("status") String status);
+
     // 위치 기반 조회 메서드들 (5km 반경)
     @Query(value = "SELECT t.* FROM trades t " +
             "JOIN users u ON t.seller_id = u.id " +
             "WHERE t.status = :status " +
             "AND u.position IS NOT NULL " +
             "AND ST_DWithin(u.position, :userPosition, 5000) " +
-            "ORDER BY t.view_count DESC", 
+            "ORDER BY t.view_count DESC",
             nativeQuery = true)
-    List<Trade> findNearbyTradesOrderByViewCountDesc(@Param("userPosition") Point userPosition, 
+    List<Trade> findNearbyTradesOrderByViewCountDesc(@Param("userPosition") Point userPosition,
                                                      @Param("status") String status);
 
     @Query(value = "SELECT t.* FROM trades t " +
@@ -50,8 +53,8 @@ public interface TradeRepository extends JpaRepository<Trade, Long> {
                         "AND u.position IS NOT NULL " +
                         "AND ST_DWithin(u.position, :userPosition, 5000)",
             nativeQuery = true)
-    Page<Trade> findNearbyTradesOrderByViewCountDesc(@Param("userPosition") Point userPosition, 
-                                                     @Param("status") String status, 
+    Page<Trade> findNearbyTradesOrderByViewCountDesc(@Param("userPosition") Point userPosition,
+                                                     @Param("status") String status,
                                                      Pageable pageable);
 
     // 키워드 검색 + 위치 기반 조회
