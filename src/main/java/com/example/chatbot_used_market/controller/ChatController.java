@@ -9,6 +9,7 @@ import com.example.chatbot_used_market.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -26,12 +27,19 @@ public class ChatController {
     // 채팅방 생성 또는 조회
     @PostMapping
     @ResponseBody
-    public ResponseEntity<ChatroomDto.Response> createOrGetChatroom(@RequestBody ChatroomDto.Request request, HttpSession session) {
+    public ResponseEntity<?> createOrGetChatroom(@RequestBody ChatroomDto.Request request, HttpSession session) {
         Long currentUserId = (Long) session.getAttribute("loginUserId");
-        Chatroom chatroom = chatService.createOrGetChatroom(request.getTradeId(), currentUserId);
-        ChatroomDto.Response response = new ChatroomDto.Response(chatroom.getId());
+        if (currentUserId == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
 
-        return ResponseEntity.ok(response);
+        try {
+            Chatroom chatroom = chatService.createOrGetChatroom(request.getTradeId(), currentUserId);
+            ChatroomDto.Response response = new ChatroomDto.Response(chatroom.getId());
+
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/{id}/messages")
