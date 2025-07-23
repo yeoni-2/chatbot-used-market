@@ -29,6 +29,10 @@
   font-weight: bold;
   text-decoration: none;
   cursor: pointer;
+  color: #111111;
+}
+.tradeBtn:visited {
+  color: #111111;
 }
 
 .locationBtn {
@@ -37,6 +41,10 @@
   font-weight: bold;
   text-decoration: none;
   cursor: pointer;
+  color: #111111;
+}
+.locationBtn:visited {
+  color: #111111;
 }
 
 .tradeBtn:visited,
