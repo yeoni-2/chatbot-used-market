@@ -5,9 +5,11 @@ import org.locationtech.jts.geom.Point;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -30,73 +32,36 @@ public interface TradeRepository extends JpaRepository<Trade, Long> {
     @Query(value = "SELECT * FROM trades WHERE (seller_id=:userId OR buyer_id=:userId) AND status=:status", nativeQuery = true)
     List<Trade> findByUserIdAndStatus(@Param("userId") Long userId, @Param("status") String status);
 
-    // 위치 기반 조회 메서드들 (5km 반경)
+    // 위치 기반 조회 메서드들 (5km 반경) - User의 position 사용
     @Query(value = "SELECT t.* FROM trades t " +
             "JOIN users u ON t.seller_id = u.id " +
-            "WHERE t.status = :status " +
+            "WHERE t.status = '판매중' " +
             "AND u.position IS NOT NULL " +
-            "AND ST_DWithin(u.position::geography, :userPosition, 5000) " +
-            "ORDER BY t.view_count DESC",
-            nativeQuery = true)
-    List<Trade> findNearbyTradesOrderByViewCountDesc(@Param("userPosition") Point userPosition,
-                                                     @Param("status") String status);
+            "AND ST_DWithin(u.position, ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326), 5000) " +
+            "ORDER BY t.view_count DESC", nativeQuery = true)
+    Page<Trade> findNearbyTrades(@Param("latitude") double latitude, @Param("longitude") double longitude, Pageable pageable);
 
     @Query(value = "SELECT t.* FROM trades t " +
             "JOIN users u ON t.seller_id = u.id " +
-            "WHERE t.status = :status " +
+            "WHERE t.status = '판매중' " +
+            "AND t.title LIKE CONCAT('%', :keyword, '%') " +
             "AND u.position IS NOT NULL " +
-            "AND ST_DWithin(u.position::geography, :userPosition, 5000) " +
-            "ORDER BY t.view_count DESC",
-            countQuery = "SELECT count(t.*) FROM trades t " +
-                        "JOIN users u ON t.seller_id = u.id " +
-                        "WHERE t.status = :status " +
-                        "AND u.position IS NOT NULL " +
-                        "AND ST_DWithin(u.position, :userPosition, 5000)",
-            nativeQuery = true)
-    Page<Trade> findNearbyTradesOrderByViewCountDesc(@Param("userPosition") Point userPosition,
-                                                     @Param("status") String status,
-                                                     Pageable pageable);
+            "AND ST_DWithin(u.position, ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326), 5000) " +
+            "ORDER BY t.view_count DESC", nativeQuery = true)
+    Page<Trade> findNearbyTradesByKeyword(@Param("keyword") String keyword, @Param("latitude") double latitude, @Param("longitude") double longitude, Pageable pageable);
 
-    // 키워드 검색 + 위치 기반 조회
     @Query(value = "SELECT t.* FROM trades t " +
             "JOIN users u ON t.seller_id = u.id " +
-            "WHERE t.title LIKE CONCAT('%', :keyword, '%') " +
-            "AND t.status = :status " +
-            "AND u.position IS NOT NULL " +
-            "AND ST_DWithin(u.position::geography, :userPosition, 5000) " +
-            "ORDER BY t.view_count DESC",
-            countQuery = "SELECT count(t.*) FROM trades t " +
-                        "JOIN users u ON t.seller_id = u.id " +
-                        "WHERE t.title LIKE CONCAT('%', :keyword, '%') " +
-                        "AND t.status = :status " +
-                        "AND u.position IS NOT NULL " +
-                        "AND ST_DWithin(u.position, :userPosition, 5000)",
-            nativeQuery = true)
-    Page<Trade> findNearbyTradesByKeywordOrderByViewCountDesc(@Param("keyword") String keyword,
-                                                              @Param("userPosition") Point userPosition,
-                                                              @Param("status") String status,
-                                                              Pageable pageable);
-
-    // 키워드 + 카테고리 검색 + 위치 기반 조회
-    @Query(value = "SELECT t.* FROM trades t " +
-            "JOIN users u ON t.seller_id = u.id " +
-            "WHERE t.title LIKE CONCAT('%', :keyword, '%') " +
+            "WHERE t.status = '판매중' " +
+            "AND t.title LIKE CONCAT('%', :keyword, '%') " +
             "AND t.category = :category " +
-            "AND t.status = :status " +
             "AND u.position IS NOT NULL " +
-            "AND ST_DWithin(u.position::geography, :userPosition, 5000) " +
-            "ORDER BY t.view_count DESC",
-            countQuery = "SELECT count(t.*) FROM trades t " +
-                        "JOIN users u ON t.seller_id = u.id " +
-                        "WHERE t.title LIKE CONCAT('%', :keyword, '%') " +
-                        "AND t.category = :category " +
-                        "AND t.status = :status " +
-                        "AND u.position IS NOT NULL " +
-                        "AND ST_DWithin(u.position, :userPosition, 5000)",
-            nativeQuery = true)
-    Page<Trade> findNearbyTradesByKeywordAndCategoryOrderByViewCountDesc(@Param("keyword") String keyword,
-                                                                         @Param("category") String category,
-                                                                         @Param("userPosition") Point userPosition,
-                                                                         @Param("status") String status,
-                                                                         Pageable pageable);
+            "AND ST_DWithin(u.position, ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326), 5000) " +
+            "ORDER BY t.view_count DESC", nativeQuery = true)
+    Page<Trade> findNearbyTradesByKeywordAndCategory(@Param("keyword") String keyword, @Param("category") String category, @Param("latitude") double latitude, @Param("longitude") double longitude, Pageable pageable);
+
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE trades SET view_count = view_count + 1 WHERE id = :id", nativeQuery = true)
+    void incrementViewCount(@Param("id") Long id);
 }

@@ -1,12 +1,12 @@
 package com.example.chatbot_used_market.repository;
 
 import com.example.chatbot_used_market.entity.User;
-import jakarta.transaction.Transactional;
 import org.locationtech.jts.geom.Point;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 

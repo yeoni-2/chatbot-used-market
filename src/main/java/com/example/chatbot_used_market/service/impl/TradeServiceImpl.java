@@ -39,7 +39,6 @@ public class TradeServiceImpl implements TradeService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<TradeResponseDto> getAllTrades() {
         List<Trade> trades = tradeRepository.findByStatusOrderByViewCountDesc("판매중");
         return trades.stream()
@@ -48,7 +47,6 @@ public class TradeServiceImpl implements TradeService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<TradeResponseDto> searchTradesByKeyword(String keyword) {
         List<Trade> trades = tradeRepository.findByTitleContainingAndStatusOrderByViewCountDesc(keyword, "판매중");
         return trades.stream()
@@ -57,7 +55,6 @@ public class TradeServiceImpl implements TradeService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<TradeResponseDto> searchTradesByKeywordAndCategory(String keyword, String category) {
         List<Trade> trades = tradeRepository.findByTitleContainingAndCategoryAndStatusOrderByViewCountDesc(keyword, category, "판매중");
         return trades.stream()
@@ -66,14 +63,12 @@ public class TradeServiceImpl implements TradeService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Page<TradeResponseDto> searchTradesByKeywordWithPagination(String keyword, Pageable pageable) {
         Page<Trade> trades = tradeRepository.findByTitleContainingAndStatusOrderByViewCountDesc(keyword, "판매중", pageable);
         return trades.map(this::convertToResponseDto);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Page<TradeResponseDto> searchTradesByKeywordAndCategoryWithPagination(String keyword, String category, Pageable pageable) {
         Page<Trade> trades = tradeRepository.findByTitleContainingAndCategoryAndStatusOrderByViewCountDesc(keyword, category, "판매중", pageable);
         return trades.map(this::convertToResponseDto);
@@ -81,26 +76,32 @@ public class TradeServiceImpl implements TradeService {
 
     // 위치 기반 조회 메서드들 구현
     @Override
-    @Transactional(readOnly = true)
     public List<TradeResponseDto> getNearbyTrades(Point userPosition) {
         if (userPosition == null) {
             return getAllTrades(); // 위치 정보가 없으면 전체 조회
         }
 
-        List<Trade> trades = tradeRepository.findNearbyTradesOrderByViewCountDesc(userPosition, "판매중");
-        return trades.stream()
+        // Point에서 latitude, longitude 추출
+        double latitude = userPosition.getY();
+        double longitude = userPosition.getX();
+        
+        Page<Trade> trades = tradeRepository.findNearbyTrades(latitude, longitude, PageRequest.of(0, Integer.MAX_VALUE));
+        return trades.getContent().stream()
                 .map(this::convertToResponseDto)
                 .toList();
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Page<TradeResponseDto> getNearbyTradesWithPagination(Point userPosition, Pageable pageable) {
         if (userPosition == null) {
             return getPagedTrades(pageable.getPageNumber(), pageable.getPageSize()); // 위치 정보가 없으면 전체 조회
         }
 
-        Page<Trade> trades = tradeRepository.findNearbyTradesOrderByViewCountDesc(userPosition, "판매중", pageable);
+        // Point에서 latitude, longitude 추출
+        double latitude = userPosition.getY();
+        double longitude = userPosition.getX();
+        
+        Page<Trade> trades = tradeRepository.findNearbyTrades(latitude, longitude, pageable);
         return trades.map(this::convertToResponseDto);
     }
 
@@ -111,7 +112,11 @@ public class TradeServiceImpl implements TradeService {
             return searchTradesByKeywordWithPagination(keyword, pageable); // 위치 정보가 없으면 일반 검색
         }
 
-        Page<Trade> trades = tradeRepository.findNearbyTradesByKeywordOrderByViewCountDesc(keyword, userPosition, "판매중", pageable);
+        // Point에서 latitude, longitude 추출
+        double latitude = userPosition.getY();
+        double longitude = userPosition.getX();
+        
+        Page<Trade> trades = tradeRepository.findNearbyTradesByKeyword(keyword, latitude, longitude, pageable);
         return trades.map(this::convertToResponseDto);
     }
 
@@ -122,7 +127,11 @@ public class TradeServiceImpl implements TradeService {
             return searchTradesByKeywordAndCategoryWithPagination(keyword, category, pageable); // 위치 정보가 없으면 일반 검색
         }
 
-        Page<Trade> trades = tradeRepository.findNearbyTradesByKeywordAndCategoryOrderByViewCountDesc(keyword, category, userPosition, "판매중", pageable);
+        // Point에서 latitude, longitude 추출
+        double latitude = userPosition.getY();
+        double longitude = userPosition.getX();
+        
+        Page<Trade> trades = tradeRepository.findNearbyTradesByKeywordAndCategory(keyword, category, latitude, longitude, pageable);
         return trades.map(this::convertToResponseDto);
     }
 
@@ -142,22 +151,18 @@ public class TradeServiceImpl implements TradeService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Page<TradeResponseDto> searchNearbyTradesByKeywordAndUserId(String keyword, Long userId, Pageable pageable) {
         Point userPosition = getUserPosition(userId);
         return searchNearbyTradesByKeyword(keyword, userPosition, pageable);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Page<TradeResponseDto> searchNearbyTradesByKeywordAndCategoryAndUserId(String keyword, String category, Long userId, Pageable pageable) {
         Point userPosition = getUserPosition(userId);
         return searchNearbyTradesByKeywordAndCategory(keyword, category, userPosition, pageable);
     }
 
-    /**
-     * 사용자 ID로부터 위치 정보를 조회하는 헬퍼 메서드
-     */
+    //사용자 ID로부터 위치 정보를 조회하는 헬퍼 메서드
     private Point getUserPosition(Long userId) {
         if (userId == null) {
             return null;
@@ -172,7 +177,6 @@ public class TradeServiceImpl implements TradeService {
     }
 
     @Override
-    @Transactional
     public TradeResponseDto createTrade(TradeRequestDto requestDto, List<MultipartFile> images, Long sellerId) {
         // 사용자 조회 및 검증
         User seller = userRepository.findById(sellerId)
@@ -182,14 +186,13 @@ public class TradeServiceImpl implements TradeService {
     }
 
     @Override
-    @Transactional
     public TradeResponseDto createTrade(TradeRequestDto requestDto, List<MultipartFile> images, User seller) {
         // 1. 이미지 파일 사전 검증
         if (images != null && !images.isEmpty() && !(images.size()==1 && (images.get(0).getOriginalFilename() == null || images.get(0).getOriginalFilename().isEmpty()))) {
             validateImages(images);
         }
 
-        // 2. 이미지 업로드 (거래글 저장 전에 먼저 업로드)
+        // 2. 이미지 업로드 (트랜잭션 외부에서 처리)
         List<String> uploadedImageUrls = new ArrayList<>();
         if (images != null && !images.isEmpty() && !(images.size()==1 && (images.get(0).getOriginalFilename() == null || images.get(0).getOriginalFilename().isEmpty()))) {
             try {
@@ -202,38 +205,36 @@ public class TradeServiceImpl implements TradeService {
         }
 
         try {
-            // 3. 거래글 생성 및 저장
-            Trade trade = new Trade();
-            trade.setTitle(requestDto.getTitle());
-            trade.setPrice(requestDto.getPrice());
-            trade.setCategory(requestDto.getCategory());
-            trade.setDescription(requestDto.getDescription());
-            trade.setSeller(seller);
-
-            Trade savedTrade = tradeRepository.save(trade);
-
-            // 4. 이미지 URL을 DB에 저장
-            if (!uploadedImageUrls.isEmpty()) {
-                try {
-                    saveTradeImages(savedTrade, uploadedImageUrls);
-                } catch (Exception e) {
-                    // DB 저장 실패 시 업로드된 이미지들 삭제
-                    cleanupUploadedImages(uploadedImageUrls);
-                    throw new RuntimeException("이미지 정보 저장에 실패했습니다: " + e.getMessage(), e);
-                }
-            }
-
-            return convertToResponseDto(savedTrade);
-
+            // 3. DB 트랜잭션으로 거래글 생성 및 저장
+            return createTradeInTransaction(requestDto, uploadedImageUrls, seller);
         } catch (Exception e) {
-            // 거래글 저장 실패 시 업로드된 이미지들 삭제
+            // DB 저장 실패 시 업로드된 이미지들 삭제
             cleanupUploadedImages(uploadedImageUrls);
             throw e;
         }
     }
 
-    @Override
     @Transactional
+    private TradeResponseDto createTradeInTransaction(TradeRequestDto requestDto, List<String> uploadedImageUrls, User seller) {
+        // 거래글 생성 및 저장
+        Trade trade = new Trade();
+        trade.setTitle(requestDto.getTitle());
+        trade.setPrice(requestDto.getPrice());
+        trade.setCategory(requestDto.getCategory());
+        trade.setDescription(requestDto.getDescription());
+        trade.setSeller(seller);
+
+        Trade savedTrade = tradeRepository.save(trade);
+
+        // 이미지 URL을 DB에 저장
+        if (!uploadedImageUrls.isEmpty()) {
+            saveTradeImages(savedTrade, uploadedImageUrls);
+        }
+
+        return convertToResponseDto(savedTrade);
+    }
+
+    @Override
     public TradeResponseDto updateTrade(Long id, TradeRequestDto requestDto, List<MultipartFile> images, Long currentUserId) {
         // 거래글 존재 확인
         if (!existsById(id)) {
@@ -251,7 +252,6 @@ public class TradeServiceImpl implements TradeService {
     }
 
     @Override
-    @Transactional
     public void deleteTrade(Long id, Long currentUserId) {
         // 거래글 존재 확인
         if (!existsById(id)) {
@@ -265,7 +265,6 @@ public class TradeServiceImpl implements TradeService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public boolean isTradeAuthor(Long tradeId, Long userId) {
         if (userId == null) {
             return false;
@@ -280,7 +279,6 @@ public class TradeServiceImpl implements TradeService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public void validateTradeAuthor(Long tradeId, Long userId) {
         if (userId == null) {
             throw new SecurityException("로그인이 필요합니다.");
@@ -292,7 +290,6 @@ public class TradeServiceImpl implements TradeService {
     }
 
     @Override
-    @Transactional
     public TradeResponseDto updateTrade(Long id, TradeRequestDto requestDto, List<MultipartFile> images, User seller) {
         Trade trade = tradeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Trade not found with id: " + id));
@@ -306,7 +303,7 @@ public class TradeServiceImpl implements TradeService {
         List<String> uploadedImageUrls = new ArrayList<>();
 
         try {
-            // 새로운 이미지가 있는 경우에만 처리
+            // 새로운 이미지가 있는 경우에만 처리 (트랜잭션 외부에서 처리)
             if (images != null && !images.isEmpty()) {
                 // 1. 새 이미지 파일 검증
                 validateImages(images);
@@ -316,48 +313,71 @@ public class TradeServiceImpl implements TradeService {
 
                 // 3. 기존 이미지 삭제 (S3에서)
                 cleanupUploadedImages(existingImageUrls);
-
-                // 4. 기존 이미지 정보 DB에서 삭제
-                tradeImageRepository.deleteByTradeId(id);
-
-                // 5. 새 이미지 정보 DB에 저장
-                saveTradeImages(trade, uploadedImageUrls);
             }
 
-            // 6. 거래글 기본 정보 업데이트
-            trade.setTitle(requestDto.getTitle());
-            trade.setPrice(requestDto.getPrice());
-            trade.setCategory(requestDto.getCategory());
-            trade.setDescription(requestDto.getDescription());
-
-            Trade updatedTrade = tradeRepository.save(trade);
-
-            return convertToResponseDto(updatedTrade);
+            // 4. DB 트랜잭션으로 거래글 업데이트
+            return updateTradeInTransaction(id, requestDto, uploadedImageUrls, seller);
 
         } catch (Exception e) {
             // 실패 시 롤백: 새로 업로드된 이미지 삭제
             if (!uploadedImageUrls.isEmpty()) {
                 cleanupUploadedImages(uploadedImageUrls);
             }
-
             throw new RuntimeException("거래글 수정에 실패했습니다: " + e.getMessage(), e);
         }
     }
 
-    @Override
     @Transactional
-    public void deleteTrade(Long id) {
+    private TradeResponseDto updateTradeInTransaction(Long id, TradeRequestDto requestDto, List<String> uploadedImageUrls, User seller) {
         Trade trade = tradeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Trade not found with id: " + id));
 
-        // 연관된 이미지들 삭제
+        // 기존 이미지 정보 DB에서 삭제
+        tradeImageRepository.deleteByTradeId(id);
+
+        // 새 이미지 정보 DB에 저장
+        if (!uploadedImageUrls.isEmpty()) {
+            saveTradeImages(trade, uploadedImageUrls);
+        }
+
+        // 거래글 기본 정보 업데이트
+        trade.setTitle(requestDto.getTitle());
+        trade.setPrice(requestDto.getPrice());
+        trade.setCategory(requestDto.getCategory());
+        trade.setDescription(requestDto.getDescription());
+
+        Trade updatedTrade = tradeRepository.save(trade);
+
+        return convertToResponseDto(updatedTrade);
+    }
+
+    @Override
+    public void deleteTrade(Long id) {
+        // 1. 트랜잭션 외부에서 이미지 정보 조회
+        List<String> imageUrls = getTradeImageUrls(id);
+
+        try {
+            // 2. DB 트랜잭션으로 거래글 삭제
+            deleteTradeInTransaction(id);
+        } catch (Exception e) {
+            throw new RuntimeException("거래글 삭제에 실패했습니다: " + e.getMessage(), e);
+        }
+
+        // 3. S3에서 이미지 삭제 (트랜잭션 외부에서 처리)
+        cleanupUploadedImages(imageUrls);
+    }
+
+    private List<String> getTradeImageUrls(Long id) {
         List<TradeImage> images = tradeImageRepository.findByTradeId(id);
-        List<String> imageUrls = images.stream()
+        return images.stream()
                 .map(TradeImage::getUrl)
                 .toList();
+    }
 
-        // S3에서 이미지 삭제
-        cleanupUploadedImages(imageUrls);
+    @Transactional
+    private void deleteTradeInTransaction(Long id) {
+        Trade trade = tradeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Trade not found with id: " + id));
 
         // DB에서 이미지 정보 삭제
         tradeImageRepository.deleteByTradeId(id);
@@ -369,11 +389,8 @@ public class TradeServiceImpl implements TradeService {
     @Override
     @Transactional
     public void incrementViewCount(Long id) {
-        Trade trade = tradeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Trade not found with id: " + id));
-
-        trade.setViewCount(trade.getViewCount() + 1);
-        tradeRepository.save(trade);
+        // 더 효율적인 방식으로 조회수 증가
+        tradeRepository.incrementViewCount(id);
     }
 
     @Override
@@ -385,7 +402,6 @@ public class TradeServiceImpl implements TradeService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public TradeResponseDto getTradeById(Long id) {
         Trade trade = tradeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Trade not found with id: " + id));
