@@ -539,4 +539,10 @@ public class TradeServiceImpl implements TradeService {
     public List<Trade> findTradesByUserIdAndStatus(Long userId, String status){
         return tradeRepository.findByUserIdAndStatus(userId, status);
     }
+
+    @Override
+    public boolean isRelatedUser(Trade trade, User user) {
+        if (trade.getSeller().equals(user)) return true;
+        return trade.getBuyer().equals(user);
+    }
 }

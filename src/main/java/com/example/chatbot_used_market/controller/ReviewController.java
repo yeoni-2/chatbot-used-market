@@ -30,6 +30,10 @@ public class ReviewController {
     Long userId = (Long)session.getAttribute("loginUserId");
     Trade trade = tradeService.findById(tradeId);
 
+    if (userId == null){
+      return "redirect:/login";
+    }
+
     if (trade == null){
       return "redirect:/trades";
     }
@@ -56,11 +60,20 @@ public class ReviewController {
                              HttpSession session){
     try {
       Long userId = (Long)session.getAttribute("loginUserId");
+
+      if (userId == null){
+        return "redirect:/login";
+      }
+
       User reviewer = userService.findById(userId);
       User reviewee = userService.findById(reviewDto.getRevieweeId());
       Trade trade = tradeService.findById(reviewDto.getTradeId());
 
-      if (userId==null || reviewer==null){
+      if (reviewer == null){
+        return "redirect:/logout";
+      }
+
+      if (reviewee==null || trade==null){
         return "redirect:/trades";
       }
 
@@ -70,10 +83,10 @@ public class ReviewController {
       }
 
       // 거래와 관계있는 사람만 리뷰를 작성할 수 있음
-      if (!isRelatedUser(trade, reviewer)){
+      if (!tradeService.isRelatedUser(trade, reviewer)){
         return "redirect:/trades";
       }
-      if (!isRelatedUser(trade, reviewee)){
+      if (!tradeService.isRelatedUser(trade, reviewee)){
         return "redirect:/trades";
       }
 
@@ -88,7 +101,17 @@ public class ReviewController {
   @DeleteMapping("/{id}")
   public String deleteReview(@PathVariable("id") Long reviewId,
                              HttpSession session){
-    User user = userService.findById((Long)session.getAttribute("loginUserId"));
+    Long userId = (Long)session.getAttribute("loginUserId");
+
+    if (userId == null){
+      return "redirect:/login";
+    }
+
+    User user = userService.findById(userId);
+
+    if (user == null){
+      return "redirect:/logout";
+    }
 
     if (!reviewService.isAuthor(reviewId, user)){
       return "redirect:/trades";
@@ -96,11 +119,6 @@ public class ReviewController {
 
     reviewService.deleteReviewById(reviewId);
 
-    return "redirect:/trade";
-  }
-
-  private boolean isRelatedUser(Trade trade, User user){
-    if (trade.getSeller().equals(user)) return true;
-    return trade.getBuyer().equals(user);
+    return "redirect:/trades";
   }
 }
