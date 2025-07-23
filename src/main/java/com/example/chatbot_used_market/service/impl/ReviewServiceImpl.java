@@ -22,7 +22,6 @@ public class ReviewServiceImpl implements ReviewService {
     Review review = new Review(reviewer, reviewee, trade, rating, content);
 
     reviewRepository.save(review);
-//    return reviewRepository.save(review);
   }
 
   @Override
@@ -61,11 +60,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     if (review == null) throw new Error("Review "+reviewId+" not found");
 
-    if (!review.getReviewer().equals(user)){
-      return false;
-    }
-
-    return true;
+    return review.getReviewer().equals(user);
   }
 
   @Override
