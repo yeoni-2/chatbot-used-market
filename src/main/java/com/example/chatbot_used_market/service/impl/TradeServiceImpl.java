@@ -10,6 +10,7 @@ import com.example.chatbot_used_market.repository.TradeRepository;
 import com.example.chatbot_used_market.repository.UserRepository;
 import com.example.chatbot_used_market.service.S3Service;
 import com.example.chatbot_used_market.service.TradeService;
+import com.example.chatbot_used_market.util.MultipartFileUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.annotation.Transactional;
@@ -185,13 +186,13 @@ public class TradeServiceImpl implements TradeService {
     @Transactional
     public TradeResponseDto createTrade(TradeRequestDto requestDto, List<MultipartFile> images, User seller) {
         // 1. 이미지 파일 사전 검증
-        if (images != null && !images.isEmpty() && !(images.size()==1 && (images.get(0).getOriginalFilename() == null || images.get(0).getOriginalFilename().isEmpty()))) {
+        if (images != null && !images.isEmpty() && !MultipartFileUtil.isEmptyMultipartFileList(images)){
             validateImages(images);
         }
 
         // 2. 이미지 업로드 (거래글 저장 전에 먼저 업로드)
         List<String> uploadedImageUrls = new ArrayList<>();
-        if (images != null && !images.isEmpty() && !(images.size()==1 && (images.get(0).getOriginalFilename() == null || images.get(0).getOriginalFilename().isEmpty()))) {
+        if (images != null && !images.isEmpty() && !MultipartFileUtil.isEmptyMultipartFileList(images)){
             try {
                 uploadedImageUrls = uploadImagesWithRollback(images);
             } catch (Exception e) {
@@ -307,7 +308,7 @@ public class TradeServiceImpl implements TradeService {
 
         try {
             // 새로운 이미지가 있는 경우에만 처리
-            if (images != null && !images.isEmpty()) {
+            if (images != null && !images.isEmpty() && !MultipartFileUtil.isEmptyMultipartFileList(images)){
                 // 1. 새 이미지 파일 검증
                 validateImages(images);
 
