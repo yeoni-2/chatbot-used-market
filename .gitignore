@@ -39,6 +39,7 @@ application-postgresql.properties
 application-google-oauth2.properties
 application-google-geocoding.properties
 
+data.sql
 oreumi11-team4.pem
 
 ### aws ###
