@@ -1,0 +1,29 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.main-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: calc(100vh - 100px);
+  margin-top: 100px;
+  background-color: #fffae0;
+  overflow-y: auto;
+}
+
+.target-trade > .trade-title {
+  font-weight: 700;
+}
+
+#reviewBtn {
+  padding: 5px 10px;
+  border: solid 2px #ff6f0e;
+  border-radius: 5px;
+  box-sizing: border-box;
+  color: #ff6f0e;
+  font-weight: 500;
+  background-color: #fff;
+  cursor: pointer;
+}

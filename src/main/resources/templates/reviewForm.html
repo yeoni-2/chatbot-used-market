@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>review form</title>
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <link rel="stylesheet" th:href="@{/css/reviewForm.css}">
+    <script th:src="@{/js/header.js}"></script>
     <script>
       function setRatingOnInputListener(){
         const rating = document.querySelector('#rating');
@@ -20,45 +23,9 @@
         setRatingOnInputListener();
       });
     </script>
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-      }
-
-      .top-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        width: calc(100% - 20px);
-        height: 80px;
-        padding: 0 10px;
-        border-bottom: solid 1px #000;
-      }
-
-      .main-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        height: calc(100vh - 81px);
-        background-color: #fffae0;
-      }
-
-      .target-trade > .trade-title {
-        font-weight: 700;
-      }
-    </style>
   </head>
   <body>
-    <div class="top-bar">
-      <div class="logo">logo</div>
-      <div class="trade">trade</div>
-      <div class="location">location</div>
-      <div class="search">search</div>
-      <div th:if="${loginUserId == null}" class="login">login</div>
-      <div th:if="${loginUserId != null}" class="chat">chat</div>
-      <div th:if="${loginUserId != null}" class="logout">logout</div>
-    </div>
+  <div th:replace="~{header :: header}"></div>
 
     <div class="main-container">
       <h2>이번 거래, 어떠셨나요?</h2>
@@ -70,7 +37,7 @@
       <form th:action="@{/reviews}" method="post">
         <input type="hidden" name="tradeId" id="tradeId" th:value="${trade.getId()}">
         <p>
-          <label for="rating">rating</label>
+          <label for="rating">평점</label>
           <input type="range" name="rating" id="rating" min="1" max="5" list="markers">
           <span id="ratingValue"></span>
           <datalist id="markers">
@@ -82,11 +49,11 @@
           </datalist>
         </p>
         <p>
-          <label for="content">content</label>
+          <label for="content">내용</label>
           <input type="text" name="content" id="content">
         </p>
         <input type="hidden" name="revieweeId" th:value="${revieweeId}">
-        <button type="submit">review</button>
+        <button id="reviewBtn" type="submit">리뷰 남기기</button>
       </form>
     </div>
   </body>
