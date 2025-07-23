@@ -7,4 +7,5 @@ import org.springframework.data.domain.Slice;
 public interface ChatbotService {
     String getChatbotReply(Long userId, String userMessage);
     Slice<ChatbotMessageDto> getChatbotMessages(Long userId, Pageable pageable);
+    void saveConversation(Long userId, String userMessage, String botResponse);
 }
