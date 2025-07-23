@@ -104,7 +104,10 @@ public class UserController {
     public String userProfile(@PathVariable("id") Long targetUserId, HttpSession session, Model model){
         Long userId = (Long)session.getAttribute("loginUserId");
 
-        if (targetUserId == null || !targetUserId.equals(userId)){
+        if (userId == null){
+            return "redirect:/login";
+        }
+        if (targetUserId == null){
             return "redirect:/users/"+userId;
         }
 
@@ -185,7 +188,7 @@ public class UserController {
                                 latitude, longitude, 2)) {
                             userService.updatePositionAndLocationById(userId, GeometryUtil.getPoint(latitude, longitude), userLocationDto.getDongName());
 
-                            return "redirect:/main";
+                            return "redirect:/users/"+userId;
                         } else {
                             model.addAttribute("error", "현재 위치와 입력하신 주소 간의 거리가 너무 멉니다.");
                             model.addAttribute("loginUserId", userId);
