@@ -56,8 +56,9 @@
           document.querySelector("#lng").value = longitude;
         }
 
-        function error(){
+        function error(error){
           status.textContent = "unable to retrieve your current location";
+          console.error(error);
         }
 
         if (!navigator.geolocation) status.textContent = "geolocation is not supported by your browser";
