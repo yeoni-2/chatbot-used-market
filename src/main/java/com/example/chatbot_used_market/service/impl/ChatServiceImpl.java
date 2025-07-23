@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.HtmlUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -65,7 +66,8 @@ public class ChatServiceImpl implements ChatService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채팅방입니다."));
         User sender = userRepository.findById(senderId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
-        Message message = new Message(content, sender, chatroom);
+        String sanitizedContent = HtmlUtils.htmlEscape(content);
+        Message message = new Message(sanitizedContent, sender, chatroom);
 
         return messageRepository.save(message);
     }

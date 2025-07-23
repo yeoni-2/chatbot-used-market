@@ -33,10 +33,16 @@ public class ChatbotServiceImpl implements ChatbotService {
     private String apiKey;
 
     @Override
-    @Transactional
+    // ▼▼▼ 이 메서드에서 @Transactional을 제거합니다. ▼▼▼
     public String getChatbotReply(Long userId, String userMessage) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다. ID: " + userId));
+        String botReplyText = callAiApi(userMessage);
+
+        saveConversation(userId, userMessage, botReplyText);
+
+        return botReplyText;
+    }
+
+    private String callAiApi(String userMessage) {
         String modelName = "gemini-1.5-flash-latest";
         String apiUrl = String.format("/v1beta/models/%s:generateContent", modelName);
         String requestBody = String.format("{\"contents\":[{\"parts\":[{\"text\":\"%s\"}]}]}", userMessage);
@@ -64,11 +70,16 @@ public class ChatbotServiceImpl implements ChatbotService {
             botReplyText = "죄송합니다, 답변을 처리하는 중 오류가 발생했습니다.";
         }
 
-        ChatbotMessage chatbotMessage = new ChatbotMessage(user, userMessage, botReplyText);
-
-        chatbotMessageRepository.save(chatbotMessage);
-
         return botReplyText;
+    }
+
+    @Override
+    @Transactional
+    public void saveConversation(Long userId, String userMessage, String botResponse) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다. ID: " + userId));
+        ChatbotMessage chatbotMessage = new ChatbotMessage(user, userMessage, botResponse);
+        chatbotMessageRepository.save(chatbotMessage);
     }
 
     @Override
